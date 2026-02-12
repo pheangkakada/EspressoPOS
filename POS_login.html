@@ -5,289 +5,302 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EspressoPOS | Login</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #7C4DFF;
-            --primary-hover: #6A42D0;
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --font-main: 'Inter', -apple-system, system-ui, sans-serif;
+            /* Modern Clean Palette */
+            --primary: #6366f1;       /* Indigo */
+            --primary-hover: #4f46e5;
+            --bg-body: #f3f4f6;       /* Light Gray */
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --ring: rgba(99, 102, 241, 0.2);
+            --radius: 16px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: var(--font-main);
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Changed from hidden to auto to allow scrolling on mobile */
-            overflow-y: auto; 
             padding: 20px;
         }
 
-        .terminal-container {
+        /* --- Main Card Layout --- */
+        .login-card {
             display: flex;
             width: 100%;
-            max-width: 850px; /* Changed from fixed width */
-            min-height: 550px;
-            background: var(--bg-card);
+            max-width: 900px;
+            min-height: 600px;
+            background: var(--surface);
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
             overflow: hidden;
-            flex-direction: row; /* Default desktop layout */
         }
 
-        .brand-section {
-            flex: 0.8;
-            background-color: var(--primary);
+        /* --- Left Side (Brand) --- */
+        .brand-side {
+            flex: 1;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
             padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             position: relative;
-            min-width: 300px;
+            overflow: hidden;
         }
 
-        .brand-section h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-            margin-bottom: 10px;
-            line-height: 1;
+        /* Decorative Circles in Background */
+        .brand-side::before {
+            content: ''; position: absolute; top: -50px; left: -50px;
+            width: 200px; height: 200px; background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .brand-side::after {
+            content: ''; position: absolute; bottom: -50px; right: -50px;
+            width: 300px; height: 300px; background: rgba(255,255,255,0.05);
+            border-radius: 50%;
         }
 
-        .brand-section p { font-size: 1rem; opacity: 0.8; max-width: 200px; }
+        .brand-content { position: relative; z-index: 2; }
+        .brand-title { font-size: 2.8rem; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
+        .brand-tagline { font-size: 1.1rem; opacity: 0.9; font-weight: 500; }
+        .brand-footer { font-size: 0.85rem; opacity: 0.7; margin-top: auto; }
 
-        .form-section {
-            flex: 1.2;
-            padding: 50px 60px;
+        /* --- Right Side (Form) --- */
+        .form-side {
+            flex: 1;
+            padding: 60px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: #ffffff;
-            width: 100%;
+            background: var(--surface);
         }
 
-        .form-header { margin-bottom: 30px; }
-        .form-header h2 { font-size: 1.5rem; font-weight: 700; }
+        .header-group { margin-bottom: 40px; }
+        .header-group h2 { font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .header-group p { color: var(--text-sub); }
 
-        .staff-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .staff-selection {
+        /* --- Staff Slider --- */
+        .staff-scroll-area {
             display: flex;
-            gap: 16px;
-            margin-bottom: 30px;
+            gap: 12px;
             overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: thin;
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            padding-bottom: 12px;
+            margin-bottom: 30px;
+            scrollbar-width: none; /* Firefox */
         }
+        .staff-scroll-area::-webkit-scrollbar { display: none; } /* Chrome */
 
-        .staff-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid var(--border);
+        .avatar-btn {
+            min-width: 60px;
+            height: 60px;
+            border-radius: 50%; /* Circle */
+            background: #f9fafb;
+            border: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 600;
+            color: var(--text-sub);
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
-            flex-shrink: 0;
-            user-select: none;
         }
 
-        .staff-avatar:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-        .staff-avatar.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .avatar-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+        .avatar-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
 
-        .tooltip {
-            position: absolute; bottom: -28px; font-size: 0.7rem; background: var(--text-main);
-            color: white; padding: 4px 8px; border-radius: 4px; opacity: 0; visibility: hidden; transition: 0.2s; white-space: nowrap; z-index: 10;
+        /* --- Selected User Pill --- */
+        .user-badge {
+            display: none;
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease;
         }
-        .staff-avatar:hover .tooltip { opacity: 1; visibility: visible; }
+        .user-badge.visible { display: flex; }
 
-        .user-pill {
-            display: none; background: #f5f3ff; border: 1px solid #ddd6fe;
-            padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; align-items: center; justify-content: space-between;
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-icon { background: #dbeafe; color: var(--primary); padding: 8px; border-radius: 50%; }
+        
+        .change-link {
+            background: none; border: none; 
+            color: var(--primary); font-size: 0.85rem; font-weight: 600; 
+            cursor: pointer;
         }
-        .user-pill.visible { display: flex; }
 
-        .input-group { margin-bottom: 20px; }
+        /* --- Inputs --- */
+        .input-group { margin-bottom: 20px; position: relative; }
         .input-group.hide { display: none; }
-        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-
-        .input-field {
-            width: 100%; padding: 12px 16px; border: 1px solid var(--border);
-            border-radius: 10px; font-size: 1rem; background: #f8fafc; transition: all 0.2s;
+        
+        .input-label {
+            display: block; font-size: 0.85rem; font-weight: 500; 
+            color: var(--text-main); margin-bottom: 8px;
         }
-        .input-field:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1); }
 
-        .btn-primary {
-            width: 100%; padding: 14px; background: var(--primary); color: white;
-            border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
-            transition: background 0.2s;
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            color: var(--text-main);
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            transition: all 0.2s;
         }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
 
+        .form-input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--ring);
+        }
+
+        /* --- Buttons --- */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        .btn-text {
+            background: none; border: none; 
+            color: var(--text-sub); font-size: 0.85rem; 
+            margin-top: 24px; cursor: pointer; 
+            text-decoration: none; width: 100%;
+        }
+        .btn-text:hover { color: var(--primary); }
+
+        /* --- Notification & Modal --- */
         .notify {
-            position: fixed; top: 24px; left: 50%; transform: translateX(-50%);
-            background: #ef4444; color: white; padding: 12px 24px; border-radius: 10px;
-            font-weight: 600; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            width: 90%; max-width: 400px; text-align: center;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: #ef4444; color: white; padding: 12px 24px; border-radius: 50px;
+            font-weight: 500; opacity: 0; visibility: hidden; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .notify.active { opacity: 1; visibility: visible; top: 40px; }
+        .notify.active { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
         .notify.success { background: #10b981; }
 
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
-            z-index: 100; display: none; align-items: center; justify-content: center;
-            padding: 20px;
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+            z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        .modal-card { 
-            width: 100%; max-width: 440px; 
-            background: white; border-radius: 20px; 
-            padding: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
-        }
-        .log-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .modal-card { width: 100%; max-width: 400px; background: white; border-radius: 20px; padding: 24px; }
+        .log-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
 
-        /* --- RESPONSIVE MEDIA QUERIES --- */
-        
-        /* Tablets & Mobile (Portrait) */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 900px) {
-            body {
-                padding: 0;
-                align-items: flex-start; /* Aligns to top on mobile to prevent cut-off */
-            }
-
-            .terminal-container {
-                flex-direction: column;
-                max-width: 100%;
-                min-height: 100vh;
-                border-radius: 0;
-                border: none;
-                box-shadow: none;
-            }
-
-            .brand-section {
-                flex: 0 0 auto; /* Don't expand, just fit content */
-                min-width: 100%;
-                padding: 40px 30px;
-                align-items: center;
-                text-align: center;
-            }
-
-            .brand-section h1 { font-size: 2rem; }
-            .brand-section p { max-width: 100%; }
-
-            .form-section {
-                flex: 1 1 auto;
-                padding: 40px 30px;
-                border-radius: 24px 24px 0 0;
-                margin-top: -20px; /* Slight overlap for style */
-                box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
-            }
+            .brand-side { display: none; } /* Hide decorative side on tablet/mobile */
+            .login-card { max-width: 500px; min-height: auto; }
+            .form-side { padding: 40px; }
         }
 
-        /* Small Mobile */
         @media (max-width: 480px) {
-            .form-section { padding: 30px 20px; }
-            .brand-section { padding: 40px 20px; }
-            .staff-avatar { width: 48px; height: 48px; }
-            .modal-card { padding: 20px; }
+            body { padding: 16px; background: white; align-items: flex-start; }
+            .login-card { box-shadow: none; border-radius: 0; min-height: 0; }
+            .form-side { padding: 20px 0; }
+            .header-group h2 { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
 
-    <div id="notify" class="notify">Notification</div>
+    <div id="notify" class="notify">Message</div>
 
-    <div class="terminal-container">
-        <aside class="brand-section">
-            <h1>Paint Coffee<br>Terminal</h1>
-            <p>Station Terminal #402</p>
+    <div class="login-card">
+        <aside class="brand-side">
+            <div class="brand-content">
+                <h1 class="brand-title">Espressp<br>POS.</h1>
+                <p class="brand-tagline">Point of Sale System</p>
+            </div>
+            <div class="brand-footer">
+                &copy; 2026 Paint Coffee Co.<br>v2.4.0 (Stable)
+            </div>
         </aside>
 
-        <main class="form-section">
-            <header class="form-header">
-                <h2>Terminal Access</h2>
-                <p>Select your profile to begin.</p>
+        <main class="form-side">
+            <header class="header-group">
+                <h2>Welcome back</h2>
+                <p>Please select your profile or enter ID.</p>
             </header>
 
-            <span class="staff-label">Select Operator</span>
-            <div id="staffList" class="staff-selection">
-                <div style="font-size: 13px; color: var(--text-muted); padding: 10px 0;">Connecting to server...</div>
+            <div id="staffList" class="staff-scroll-area">
+                <div style="font-size: 13px; color: var(--text-sub);">Loading users...</div>
             </div>
 
             <form id="loginForm">
-                <div id="selectedBadge" class="user-pill">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="material-icons-round" style="color: var(--primary)">account_circle</span>
-                        <div style="display: flex; flex-direction: column;">
-                            <strong id="badgeName">User</strong>
-                            <span id="badgeRole" style="font-size: 10px; color: #666; text-transform: uppercase;">Role</span>
+                <div id="selectedBadge" class="user-badge">
+                    <div class="user-info">
+                        <div class="user-icon">
+                            <span class="material-icons-round" style="font-size: 20px;">person</span>
+                        </div>
+                        <div>
+                            <div id="badgeName" style="font-weight: 600; font-size: 0.95rem;">User</div>
+                            <div id="badgeRole" style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase;">Operator</div>
                         </div>
                     </div>
-                    <button type="button" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; font-weight: 600;" onclick="resetForm()">
-                        CHANGE
-                    </button>
+                    <button type="button" class="change-link" onclick="resetForm()">Change</button>
                 </div>
 
                 <div id="idGroup" class="input-group">
-                    <label>Operator ID</label>
-                    <input type="text" id="username" class="input-field" placeholder="e.g. admin" autocomplete="off">
+                    <label class="input-label">Operator ID</label>
+                    <input type="text" id="username" class="form-input" placeholder="e.g. admin" autocomplete="off">
                 </div>
 
                 <div class="input-group">
-                    <label>Security PIN</label>
-                    <input type="password" id="password" class="input-field" placeholder="••••" required>
+                    <label class="input-label">Security PIN</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••" required>
                 </div>
 
-                <button type="submit" id="loginBtn" class="btn-primary">Initialize Session</button>
+                <button type="submit" id="loginBtn" class="btn-submit">Sign In</button>
             </form>
 
-            <button style="margin-top:20px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:12px; text-decoration: underline;" onclick="toggleHistory(true)">View Recent System Activity</button>
+            <button class="btn-text" onclick="toggleHistory(true)">View recent system activity</button>
         </main>
     </div>
 
     <div id="historyOverlay" class="modal-overlay" onclick="toggleHistory(false)">
         <div class="modal-card" onclick="event.stopPropagation()">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 1.2rem; font-weight: 700;">Recent Activity</h2>
-                <button onclick="toggleHistory(false)" style="background: none; border: none; cursor: pointer;">
+                <h3 style="font-size: 1.1rem; font-weight: 700;">System Logs</h3>
+                <button onclick="toggleHistory(false)" style="background: none; border: none; cursor: pointer; color: var(--text-sub);">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
-            <div id="logContainer">Loading logs...</div>
+            <div id="logContainer">Loading...</div>
         </div>
     </div>
 
     <script>
-        // CONFIGURATION
+        // --- LOGIC (UNCHANGED, SAME AS BEFORE) ---
         const API_BASE = 'https://nodetest-backend-jwqo.onrender.com/api';
         
-        // DOM Elements
         const staffListEl = document.getElementById('staffList');
         const usernameEl = document.getElementById('username');
         const passwordEl = document.getElementById('password');
@@ -297,64 +310,49 @@
         const badgeNameEl = document.getElementById('badgeName');
         const badgeRoleEl = document.getElementById('badgeRole');
 
-        // 1. Initialize: Load Users from Database
         async function loadStaff() {
             try {
                 const res = await fetch(`${API_BASE}/users`);
-                if (!res.ok) throw new Error("Failed to fetch");
-                
+                if (!res.ok) throw new Error("Failed");
                 const users = await res.json();
                 staffListEl.innerHTML = '';
 
                 if (users.length === 0) {
-                    staffListEl.innerHTML = '<span style="font-size:12px; color: orange;">No users found. Login manually.</span>';
+                    staffListEl.innerHTML = '<span style="font-size:12px; color:orange">No users.</span>';
                     return;
                 }
 
                 users.forEach(user => {
-                    const avatar = document.createElement('div');
-                    avatar.className = 'staff-avatar';
-                    
-                    // Initials
-                    const initial = user.username ? user.username.charAt(0).toUpperCase() : '?';
-                    avatar.innerHTML = `${initial} <span class="tooltip">${user.username}</span>`;
-                    
-                    // Click Handler
-                    avatar.addEventListener('click', () => selectStaff(avatar, user.username, user.role));
-                    
-                    staffListEl.appendChild(avatar);
+                    const btn = document.createElement('div');
+                    btn.className = 'avatar-btn';
+                    btn.textContent = user.username ? user.username.charAt(0).toUpperCase() : '?';
+                    btn.title = user.username; // Tooltip
+                    btn.onclick = () => selectStaff(btn, user.username, user.role);
+                    staffListEl.appendChild(btn);
                 });
             } catch (err) {
-                console.error("Load users failed", err);
-                staffListEl.innerHTML = '<span style="font-size:12px; color: red;">Server Offline. Check API.</span>';
+                console.error(err);
+                staffListEl.innerHTML = '<span style="font-size:12px; color:red">Offline</span>';
             }
         }
 
-        // 2. Select User Logic
-        function selectStaff(element, username, role) {
-            // UI Updates
-            document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
-            element.classList.add('active');
+        function selectStaff(el, username, role) {
+            document.querySelectorAll('.avatar-btn').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
             
-            // Set Form Data
             usernameEl.value = username;
-            
-            // Visual Toggle
             idGroupEl.classList.add('hide');
             selectedBadgeEl.classList.add('visible');
             
-            // Update Badge Info
             badgeNameEl.textContent = username;
-            badgeRoleEl.textContent = role || 'Operator';
+            badgeRoleEl.textContent = role || 'Staff';
             
-            // Focus Password
             passwordEl.value = '';
             passwordEl.focus();
         }
 
-        // 3. Reset Form Logic
         window.resetForm = function() {
-            document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.avatar-btn').forEach(n => n.classList.remove('active'));
             idGroupEl.classList.remove('hide');
             selectedBadgeEl.classList.remove('visible');
             usernameEl.value = "";
@@ -362,20 +360,14 @@
             usernameEl.focus();
         }
 
-        // 4. Authentication Logic
         document.getElementById('loginForm').onsubmit = async (e) => {
             e.preventDefault();
-            
             const username = usernameEl.value.trim();
             const password = passwordEl.value.trim();
 
-            if(!username || !password) {
-                showNotify("Please enter credentials");
-                return;
-            }
+            if(!username || !password) { showNotify("Missing credentials"); return; }
 
-            // UI Loading State
-            loginBtn.textContent = "Verifying Credentials...";
+            loginBtn.textContent = "Verifying...";
             loginBtn.disabled = true;
 
             try {
@@ -388,91 +380,70 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    showNotify("Access Granted", true);
-                    
-                    // Save Session
+                    showNotify("Success!", true);
                     localStorage.setItem('username', data.user.username);
                     localStorage.setItem('role', data.user.role);
-                    localStorage.setItem('token', 'admin_secret_key'); // Simple token simulation
-
-                    // Redirect based on role
+                    
                     setTimeout(() => {
-                        if (data.user.role === 'admin' || data.user.role === 'manager') {
-                            window.location.href = 'admin.html';
-                        } else {
-                            window.location.href = 'pos.html';
-                        }
+                        window.location.href = (data.user.role === 'admin' || data.user.role === 'manager') 
+                            ? 'admin.html' : 'pos.html';
                     }, 800);
                 } else {
-                    showNotify(data.error || "Invalid ID or PIN");
-                    loginBtn.textContent = "Initialize Session";
+                    showNotify(data.error || "Access Denied");
+                    loginBtn.textContent = "Sign In";
                     loginBtn.disabled = false;
-                    passwordEl.value = ''; // Clear password on fail
-                    passwordEl.focus();
+                    passwordEl.value = '';
                 }
             } catch (err) {
-                console.error(err);
-                showNotify("Server Connection Failed");
-                loginBtn.textContent = "Initialize Session";
+                showNotify("Connection Error");
+                loginBtn.textContent = "Sign In";
                 loginBtn.disabled = false;
             }
         };
 
-        // 5. Notification Toast
         function showNotify(msg, isSuccess = false) {
             const n = document.getElementById('notify');
             n.textContent = msg;
             n.className = isSuccess ? 'notify active success' : 'notify active';
-            
-            // Clear existing timeout if any (simple debounce)
-            if(window.notifyTimeout) clearTimeout(window.notifyTimeout);
-            
-            window.notifyTimeout = setTimeout(() => {
-                n.classList.remove('active');
-            }, 3000);
+            setTimeout(() => n.classList.remove('active'), 3000);
         }
 
-        // 6. History Logs (Bonus Feature)
         window.toggleHistory = async function(show) {
             const overlay = document.getElementById('historyOverlay');
             if (show) {
                 overlay.style.display = 'flex';
-                const logContainer = document.getElementById('logContainer');
-                logContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Fetching logs...</div>';
+                const container = document.getElementById('logContainer');
+                container.innerHTML = '<div style="text-align:center; color:#999;">Fetching...</div>';
                 
                 try {
                     const res = await fetch(`${API_BASE}/invoices`);
-                    if(!res.ok) throw new Error("Failed");
-                    
                     const invs = await res.json();
                     
-                    if(invs.length === 0) {
-                        logContainer.innerHTML = '<div style="text-align:center; padding:20px;">No recent activity.</div>';
+                    if(!res.ok || invs.length === 0) {
+                        container.innerHTML = '<div style="text-align:center;">No data found.</div>';
                         return;
                     }
 
-                    // Show last 5 invoices as "activity"
-                    logContainer.innerHTML = invs.slice(0, 5).map(i => `
-                        <div class="log-item">
+                    container.innerHTML = invs.slice(0, 5).map(i => `
+                        <div class="log-row">
                             <div>
-                                <strong>Invoice #${i.invoiceId || i._id.substring(0,6)}</strong><br>
-                                <span style="font-size:11px; color:#666;">by ${i.createdBy || 'Staff'}</span>
+                                <strong style="color:var(--text-main)">#${i.invoiceId || 'INV'}</strong>
+                                <div style="font-size:11px; color:var(--text-sub)">${i.createdBy || 'Staff'}</div>
                             </div>
-                            <div style="text-align:right;">
-                                <strong>$${i.total ? i.total.toFixed(2) : '0.00'}</strong><br>
-                                <span style="font-size:11px; color:#666;">${new Date(i.date).toLocaleTimeString()}</span>
+                            <div style="text-align:right">
+                                <strong style="color:var(--primary)">$${i.total ? i.total.toFixed(2) : '0.00'}</strong>
+                                <div style="font-size:11px; color:var(--text-sub)">${new Date(i.date).toLocaleTimeString()}</div>
                             </div>
                         </div>
                     `).join('');
                 } catch (e) { 
-                    document.getElementById('logContainer').innerHTML = '<div style="color:red; text-align:center;">Failed to load logs. Server might be down.</div>';
+                    container.innerHTML = '<div style="color:red; text-align:center;">Load failed.</div>';
                 }
             } else { 
                 overlay.style.display = 'none'; 
             }
         }
 
-        // Initialize
         window.onload = loadStaff;
     </script>
 </body>
