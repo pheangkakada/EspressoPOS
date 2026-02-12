@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cool POS System - Soft Light Theme</title>
+    <link rel="stylesheet" href="pos.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+   <div class="pos-container">
+        <aside class="sidebar">
+            <div class="logo">LOGO</div>
+            <nav class="nav-links">
+                <button class="nav-btn active" title="Menu" data-page="menu">
+                    <span class="material-icons-round">apps</span>
+                </button>
+                <button class="nav-btn" title="Invoices" data-page="invoices" id="invoicesBtn">
+                    <span class="material-icons-round">receipt_long</span>
+                </button>
+                <button class="nav-btn" title="Reports" data-page="reports">
+                    <span class="material-icons-round">analytics</span>
+                </button>
+            </nav>
+            
+            <div class="user-profile">
+                <span class="material-icons-round">account_circle</span>
+            </div>
+        </aside>
+
+        <!-- Menu Page with Order Panel -->
+        <div class="main-content-wrapper" id="menuPage">
+            <main class="main-content">
+                <header class="menu-header">
+                    <div class="header-left">
+                        <h2><span style="color: blueviolet;">MENU</span> List</h2>
+                        <div class="datetime">
+                            <span class="material-icons-round">today</span> Mon, 12.02.2026 - 
+                            <span class="material-icons-round">schedule</span> 8:12 PM
+                        </div>
+                    </div>
+                </header>
+
+                <section class="menu-area">
+                    <div class="cate_title">
+                        <span>Categories</span>
+                        <span>
+                            <a href="#" id="viewAllCategories">View All</a>
+                        </span>
+                    </div>
+                    <div class="menu-categories">
+                        <!-- Categories will be generated dynamically by JavaScript -->
+                    </div>
+                    <div class="search-bar-container">
+                        <span class="material-icons-round">search</span>
+                        <input type="text" id="searchInput" placeholder="Search by name or ID (e.g., 'Latte' or '1')">
+                        <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
+                            <span class="material-icons-round" style="font-size: 1.3rem;">close</span>
+                        </button>
+                    </div>
+                </section>
+                <div class="menu-items-grid">
+                    <!-- Menu items will be generated here -->
+                </div>
+            </main>
+
+            <aside class="order-panel">
+                <h2><span style="color: blueviolet;">Order</span> Details</h2>
+               <div class="table-selector-group">
+                    <div style="width: 100%;display: flex; align-items: center; justify-content: space-between;">
+                        <h2 style="font-size: 20px; color: black;">Table : <span id="currentTableDisplay">0</span></h2>
+                        <button class="edit-btn"><span class="material-icons-round">edit</span> Change Table</button>
+                    </div>
+                    <h3>Invoice No#: <strong style="color: var(--primary-color);" id="invoiceNumberDisplay">Creating New...</strong></h3>
+                </div>
+
+                <div class="order-list-container">
+                    <div class="order-list">
+                        <div class="empty-state hidden">No items added.</div>
+                    </div>
+                </div>
+
+                <div class="summary-and-actions">
+                    <div class="total-calculations">
+                        <div class="calc-row">
+                            <span>Sub Total</span>
+                            <span>$15.00</span>
+                        </div>
+                        <div class="calc-row discount-row">
+                            <span class="discount-label">
+                                Discount
+                                <button type="button" class="btn-dis-all">%/Amount</button>
+                            </span>
+                            <span class="discount-amount">0.00</span>
+                        </div>
+                        <div class="calc-row total-amount">
+                            <span>Total Amount</span>
+                            <span>
+                                <span class="total-usd">$11.25</span>
+                                <span class="total-khr">45,000៛</span>
+                            </span>
+                        </div>
+                    </div>
+        
+                    <div class="payment-options">
+                        <button class="payment-btn cash">
+                            <span class="material-icons-round">payments</span> Cash
+                        </button>
+                        <button class="payment-btn card">ABA/Card</button>
+                        <button class="payment-btn delivery">
+                            <span class="material-icons-round">two_wheeler</span> Delivery
+                        </button>
+                    </div>
+        
+                    <div class="action-buttons">
+                        <button class="action-btn process">Process & Print</button>
+                        <button class="action-btn save">Hold/Save</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Invoices Page (Full Width) -->
+        <div class="main-content-wrapper full-width hidden" id="invoicesPage">
+            <main class="main-content">
+                <header class="menu-header">
+                    <div class="header-left">
+                        <h2><span style="color: blueviolet;">INVOICE</span> List</h2>
+                        <div class="datetime">
+                            <span class="material-icons-round">today</span> Mon, 12.02.2026 - 
+                            <span class="material-icons-round">schedule</span> 8:12 PM
+                        </div>
+                    </div>
+                </header>
+
+                <section class="invoice-section">
+                    <div class="search-bar-container" style="margin-bottom: 20px;">
+                        <span class="material-icons-round">search</span>
+                        <input type="text" id="invoiceSearchInput" placeholder="Search invoices by ID, table, or status...">
+                    </div>
+                    
+                    <div class="invoice-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--primary-color);">0</div>
+                            <div style="color: var(--text-muted);">Total Invoices</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--discount-green);">0</div>
+                            <div style="color: var(--text-muted);">Paid</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--hot-orange);">0</div>
+                            <div style="color: var(--text-muted);">Pending</div>
+                        </div>
+                        <div class="stat-card">
+                            <div style="font-size: 2em; font-weight: bold; color: var(--cold-blue);">$0.00</div>
+                            <div style="color: var(--text-muted);">Total Revenue</div>
+                        </div>
+                    </div>
+
+                    <div class="invoice-list-container">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date & Time</th>
+                                    <th>Payment Method</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceListBody">
+                                <!-- Invoices will be populfated here by JavaScript -->
+                            </tbody>
+                        </table>
+                        <div id="noInvoicesMessage" class="no-items" style="display: none;">
+                            No invoices found
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Existing Modals (Table, Cash, Delivery, Item Detail, Discount) -->
+    <div id="tableModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Table Number</h3>
+                <button class="close-btn"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <!-- Add "No Table" option at the beginning -->
+                <div class="table-options-grid">
+                    <button class="table-btn selected" data-table-number="0">No Table</button>
+                    <button class="table-btn" data-table-number="1">1</button>
+                    <button class="table-btn" data-table-number="2">2</button>
+                    <button class="table-btn" data-table-number="3">3</button>
+                    <button class="table-btn" data-table-number="4">4</button>
+                    <button class="table-btn" data-table-number="5">5</button>
+                    <button class="table-btn" data-table-number="6">6</button>
+                    <button class="table-btn" data-table-number="7">7</button>
+                    <button class="table-btn" data-table-number="8">8</button>
+                    <button class="table-btn" data-table-number="9">9</button>
+                    <button class="table-btn" data-table-number="10">10</button>
+                    <button class="table-btn" data-table-number="11">11</button>
+                    <button class="table-btn" data-table-number="12">12</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Detail Modal -->
+    <!-- Invoice Detail Modal -->
+<div id="invoiceDetailModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Invoice Details - <span id="detailInvoiceId">INV-001</span></h3>
+            <button class="close-btn"><span class="material-icons-round">close</span></button>
+        </div>
+        <div class="modal-body">
+            <div class="invoice-detail-grid">
+                <div class="invoice-detail-section">
+                    <h4>Order Information</h4>
+                    <div><strong>Invoice ID:</strong> <span id="detailInvoiceNumber">INV-001</span></div>
+                    <div><strong>Date & Time:</strong> <span id="detailInvoiceDate">2024-01-15 14:30</span></div>
+                    <div><strong>Table:</strong> <span id="detailInvoiceTable">Table 5 / Takeaway</span></div>
+                    <div><strong>Status:</strong> <span id="detailInvoiceStatus" class="invoice-status status-paid">Paid</span></div>
+                </div>
+                
+                <div class="invoice-detail-section">
+                    <h4>Payment Information</h4>
+                    <div><strong>Payment Method:</strong> <span id="detailPaymentMethod" class="payment-method payment-cash">Cash</span></div>
+                    <div><strong>Subtotal:</strong> $<span id="detailSubtotal">25.50</span></div>
+                    <div><strong>Discount:</strong> $<span id="detailDiscount">0.00</span></div>
+                    <div><strong>Total Amount:</strong> $<span id="detailTotal">25.50</span></div>
+                </div>
+            </div>
+            
+            <div class="invoice-detail-section">
+                <h4>Order Items</h4>
+                <table class="invoice-items-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceDetailItems">
+                        <!-- Items will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <div class="invoice-total-section">
+                    <div class="invoice-total-row">
+                        <span>Subtotal:</span>
+                        <span>$<span id="detailCalcSubtotal">25.50</span></span>
+                    </div>
+                    <div class="invoice-total-row">
+                        <span>Discount:</span>
+                        <span>- $<span id="detailCalcDiscount">0.00</span></span>
+                    </div>
+                    <div class="invoice-total-row invoice-grand-total">
+                        <span>Grand Total:</span>
+                        <span>$<span id="detailCalcTotal">25.50</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-print-invoice" id="printInvoiceDetailBtn">
+                    <span class="material-icons-round">print</span> Print Invoice
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<div id="cashModal" class="modal-overlay hidden" data-close-on-backdrop="false">
+    <div class="modal-content modal-content-medium">
+        <div class="modal-header">
+            <h3>Cash Payment</h3>
+            <button class="close-btn" data-modal="cash"><span class="material-icons-round">close</span></button>
+        </div>
+        <div class="modal-body modal-body-form">
+            <div class="input-group">
+                <label>Amount Due: <strong id="cashModalDue">$0.00</strong> (<span id="cashModalDueKHR">0៛</span>)</label>
+            </div>
+            <h4>Cash Received</h4>
+            <div class="currency-input-group">
+                <div class="input-group">
+                    <label for="cashReceivedUSD">USD ($)</label>
+                    <div class="input-with-clear">
+                        <input type="number" id="cashReceivedUSD" class="input-field" placeholder="0.00" value="" step="0.01">
+                        <button class="btn-clear" data-clear-target="cashReceivedUSD">
+                            <span class="material-icons-round">backspace</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="cashReceivedKHR">KHR (៛)</label>
+                    <div class="input-with-clear">
+                        <input type="number" id="cashReceivedKHR" class="input-field" placeholder="0" value="">
+                        <button class="btn-clear" data-clear-target="cashReceivedKHR">
+                            <span class="material-icons-round">backspace</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <h4>Change Due</h4>
+            <div class="currency-input-group">
+                <div class="input-group">
+                    <label>Change (USD)</label>
+                    <div class="input-with-clear">
+                        <div class="change-display" id="changeDisplayUSDContainer">
+                            <span id="changeDisplayUSD">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Change (KHR)</label>
+                    <div class="input-with-clear">
+                        <div class="change-display" id="changeDisplayKHRContainer">
+                            <span id="changeDisplayKHR">0៛</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-action-buttons">
+            <!-- Change this button to trigger the same process as the main Process & Print button -->
+            <button class="action-btn process" id="finalizeCashPayment">Process & Print</button>
+        </div>
+    </div>
+</div>
+    
+    <div id="deliveryModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Delivery App</h3>
+                <button class="close-btn"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-options-grid app-options-grid">
+                    <button class="table-btn app-btn" data-app="FoodPanda">FoodPanda</button>
+                    <button class="table-btn app-btn" data-app="GrabFood">GrabFood</button>
+                    <button class="table-btn app-btn" data-app="Nham24">Nham24</button>
+                    <button class="table-btn app-btn" data-app="WOWNOW">WOWNOW</button>
+                    <button class="table-btn app-btn" data-app="E-GetS">E-GetS</button>
+                    <button class="table-btn app-btn" data-app="Other">Other</button>
+                </div>
+            </div>
+            <div class="modal-action-buttons">
+                <button class="action-btn process" id="saveDeliveryApp">Confirm Delivery App</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="itemDetailModal" class="modal-overlay hidden">
+        <div class="modal-content modal-content-large">
+            <div class="modal-header">
+                <h3 id="itemModalName">Item Name</h3>
+                <button class="close-btn"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="item-modal-content">
+                    <div class="item-modal-info">
+                        <img src="" alt="" style="width: 150px;height: 150px; object-fit: contain;" class="item-modal-img">
+                        <h4>Unit Price: <span id="itemModalUnitPrice">$0.00</span></h4>
+                        
+                        <div class="input-group">
+                            <label>Quantity</label>
+                            <div class="item-controls-modal">
+                                <button class="qty-btn" data-action="decrease" data-target="modal-qty">
+                                    <span class="material-icons-round">remove</span>
+                                </button>
+                                <span class="quantity" id="itemModalQuantity">x1</span>
+                                <button class="qty-btn" data-action="increase" data-target="modal-qty">
+                                    <span class="material-icons-round">add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-modal-options">
+                        <div class="input-group">
+                            <label>Sugar Level</label>
+                            <div class="selection-group-grid" id="sugarSelection">
+                                <button class="selection-btn selected" data-value="Default">Default</button>
+                                <button class="selection-btn" data-value="100%">100%</button>
+                                <button class="selection-btn" data-value="75%">75%</button>
+                                <button class="selection-btn" data-value="50%">50%</button>
+                                <button class="selection-btn" data-value="25%">25%</button>
+                                <button class="selection-btn" data-value="0%">0%</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Discount</label>
+                            <div class="discount-controls-row">
+                                <div class="discount-type-buttons" id="discountTypeButtons">
+                                    <button class="discount-type-btn active" data-type="percent">%</button>
+                                    <button class="discount-type-btn" data-type="khr">៛</button>
+                                    <button class="discount-type-btn" data-type="usd">$</button>
+                                </div>
+                                <div class="discount-inputs">
+                                    <input type="number" id="discountValue" class="input-field" placeholder="Value (e.g., 10 or 0.50)" value="0" step="any">
+                                    <button class="btn-primary" id="applyDiscountBtn" style="padding: 5px 10px;">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="itemNotes">Remark/Note</label>
+                            <input type="text" id="itemNotes" class="input-field" placeholder="Add a custom note (e.g., extra ice)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calc-row total-amount">
+                    <span>Total Item Price</span>
+                    <span id="itemModalTotalPrice">$0.00</span>
+                </div>
+
+                <div class="modal-action-buttons">
+                    <button class="action-btn save" id="splitOrderItemBtn">
+                        <span class="material-icons-round" style="font-size: 1.1em;">add_circle_outline</span> Add New Item
+                    </button>
+                    <button class="action-btn process" id="saveItemDetailsBtn">
+                        <span class="material-icons-round" style="font-size: 1.1em;">save</span> Set/Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="discountModal" class="modal-overlay hidden">
+        <div class="modal-content modal-content-small">
+            <div class="modal-header">
+                <h3>Apply Global Discount</h3>
+                <button class="close-btn"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body modal-body-form">
+                <div class="input-group">
+                    <label>Discount Type</label>
+                    <div class="discount-controls-row">
+                        <div class="discount-type-buttons" id="globalDiscountTypeButtons">
+                            <button class="discount-type-btn active" data-type="percent">%</button>
+                            <button class="discount-type-btn" data-type="khr">៛</button>
+                            <button class="discount-type-btn" data-type="usd">$</button>
+                        </div>
+                        <div class="discount-inputs">
+                            <input type="number" id="globalDiscountValue" class="input-field" placeholder="Value (e.g., 10 or 0.50)" value="0" step="any">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-action-buttons">
+                <button class="action-btn save" id="clearGlobalDiscountBtn">
+                    <span class="material-icons-round" style="font-size: 1.1em;">cancel</span> Clear Discount
+                </button>
+                <button class="action-btn process" id="applyGlobalDiscountBtn">
+                    <span class="material-icons-round" style="font-size: 1.1em;">check</span> Apply Discount
+                </button>
+            </div>
+        </div>
+    </div>
+    
+</body>
+<script src="pos.js"></script>
+</html>
