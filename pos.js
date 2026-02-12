@@ -476,7 +476,7 @@ let systemSettings = {};
     }
 async function loadSystemSettings() {
     try {
-        const response = await fetch('http://localhost:3000/api/settings');
+        const response = await fetch('https://nodetest-backend-jwqo.onrender.com/settings');
         if (response.ok) {
             systemSettings = await response.json();
             
