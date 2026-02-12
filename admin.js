@@ -296,8 +296,9 @@ async function loadPageContent(page) {
         `;
     }
 }
-
 // ================== SALES REPORT LOGIC ==================
+
+// ================== POWERFUL ANALYTICS REPORT ==================
 
 // 1. Load Chart.js Library Dynamically (if not already loaded)
 async function ensureChartLibrary() {
@@ -389,8 +390,6 @@ function generateReport() {
     const startObj = new Date(startVal); startObj.setHours(0,0,0,0);
     const endObj = new Date(endVal); endObj.setHours(23,59,59,999);
 
-    if (!window.allReportInvoices) return;
-
     const filtered = window.allReportInvoices.filter(inv => {
         if (!inv.date) return false;
         const invDate = new Date(inv.date);
@@ -403,11 +402,6 @@ function generateReport() {
 function renderAnalytics(data) {
     const container = document.getElementById('report-content');
     
-    if (data.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:40px; color:#888;">No sales found in this period.</div>`;
-        return;
-    }
-
     // --- A. Calculate KPIs ---
     const totalRev = data.reduce((s, i) => s + (i.total || 0), 0);
     const totalOrders = data.length;
@@ -632,6 +626,127 @@ function exportToCSV() {
     showNotification('success', 'Report downloaded successfully!');
 }
 
+// --- Helper: Filter and Render Stats ---
+function generateReport() {
+    const start = document.getElementById('report-start').value;
+    const end = document.getElementById('report-end').value;
+    document.getElementById('report-content').innerHTML = renderReportData(start, end);
+}
+
+function renderReportData(startDate, endDate) {
+    if (!window.allReportInvoices || window.allReportInvoices.length === 0) {
+        return '<div class="error-state">No invoice data available.</div>';
+    }
+
+    const startObj = new Date(startDate); startObj.setHours(0,0,0,0);
+    const endObj = new Date(endDate); endObj.setHours(23,59,59,999);
+
+    const filtered = window.allReportInvoices.filter(inv => {
+        if (!inv.date) return false;
+        const invDate = new Date(inv.date);
+        return inv.status === 'paid' && invDate >= startObj && invDate <= endObj;
+    });
+
+    if (filtered.length === 0) {
+        return `<div style="text-align:center; padding:40px; color:#888;">No sales found in this period.</div>`;
+    }
+
+    // 1. Calculate Item Stats & Normal Prices
+    const itemStats = {};
+    const totalOrders = filtered.length;
+
+    filtered.forEach(inv => {
+        if (inv.items) {
+            inv.items.forEach(item => {
+                const name = item.name || 'Unknown';
+                const qty = item.quantity || 0;
+                const soldPrice = item.price || 0;
+                const itemNet = item.total || (soldPrice * qty);
+
+                if (!itemStats[name]) itemStats[name] = { qty: 0, revenue: 0, normalPrice: 0 };
+                
+                itemStats[name].qty += qty;
+                itemStats[name].revenue += itemNet;
+                
+                // TRACK NORMAL PRICE (Highest seen)
+                if (soldPrice > itemStats[name].normalPrice) {
+                    itemStats[name].normalPrice = soldPrice;
+                }
+            });
+        }
+    });
+
+    // 2. Compute Totals based on Normal Price
+    let grandTotalGross = 0;
+    let grandTotalRevenue = 0;
+
+    const topItems = Object.entries(itemStats)
+        .map(([name, data]) => {
+            const gross = data.normalPrice * data.qty;
+            grandTotalGross += gross;
+            grandTotalRevenue += data.revenue;
+
+            return { 
+                name, 
+                qty: data.qty, 
+                revenue: data.revenue,
+                unitPrice: data.normalPrice, // Uses Normal Price
+                discount: gross - data.revenue
+            };
+        })
+        .sort((a, b) => b.revenue - a.revenue);
+
+    const grandTotalDiscount = grandTotalGross - grandTotalRevenue;
+
+    // 3. Render HTML
+    return `
+        <div class="admin-dashboard-stats" style="margin-bottom: 25px;">
+            <div class="admin-stat-card">
+                <span class="material-icons-round admin-stat-icon" style="background:#E8F5E9; color:#2E7D32;">payments</span>
+                <div class="admin-stat-value">$${grandTotalRevenue.toFixed(2)}</div>
+                <div class="admin-stat-label">Net Sales</div>
+            </div>
+            
+            <div class="admin-stat-card">
+                <span class="material-icons-round admin-stat-icon" style="background:#FFEBEE; color:#D32F2F;">local_offer</span>
+                <div class="admin-stat-value">-$${grandTotalDiscount.toFixed(2)}</div>
+                <div class="admin-stat-label">Total Discount</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <span class="material-icons-round admin-stat-icon" style="background:#E3F2FD; color:#1565C0;">receipt</span>
+                <div class="admin-stat-value">${totalOrders}</div>
+                <div class="admin-stat-label">Total Orders</div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow-soft); margin-bottom: 25px;">
+            <h3 style="margin-top:0;">Item Sales Breakdown</h3>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+                    <thead style="position: sticky; top: 0; background: white; border-bottom: 2px solid #eee;">
+                        <tr>
+                            <th style="text-align:left; padding:10px;">Item Name</th>
+                            <th style="text-align:right; padding:10px;">Normal Price</th>
+                            <th style="text-align:center; padding:10px;">Qty Sold</th>
+                            <th style="text-align:right; padding:10px;">Net Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${topItems.map(item => `
+                            <tr style="border-bottom: 1px solid #f5f5f5;">
+                                <td style="padding: 10px;">${item.name}</td>
+                                <td style="text-align:right; padding: 10px;">$${item.unitPrice.toFixed(2)}</td>
+                                <td style="text-align:center; padding: 10px;">${item.qty}</td>
+                                <td style="text-align:right; padding: 10px; font-weight: bold;">$${item.revenue.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
 // ================== MENU ITEMS PAGE ==================
 async function loadMenuItemsPage() {
     try {
@@ -687,24 +802,25 @@ async function loadMenuItemsPage() {
             return !hasAtLeastOneValid;
         });
         
-        // Count items per category (Updated for Multiple Categories)
-        const itemsByCategory = {};
-        menuItems.forEach(item => {
-            // 1. Determine the primary category
-            let primaryCategory = 'Uncategorized';
-            
-            if (Array.isArray(item.categories) && item.categories.length > 0) {
-                primaryCategory = item.categories[0]; // Use first category from array
-            } else if (item.category) {
-                primaryCategory = item.category; // Fallback to old field
-            }
+        // Count items per category
+       // Count items per category (Updated for Multiple Categories)
+const itemsByCategory = {};
+menuItems.forEach(item => {
+    // 1. Determine the primary category
+    let primaryCategory = 'Uncategorized';
+    
+    if (Array.isArray(item.categories) && item.categories.length > 0) {
+        primaryCategory = item.categories[0]; // Use first category from array
+    } else if (item.category) {
+        primaryCategory = item.category; // Fallback to old field
+    }
 
-            // 2. Increment count
-            if (!itemsByCategory[primaryCategory]) {
-                itemsByCategory[primaryCategory] = 0;
-            }
-            itemsByCategory[primaryCategory]++;
-        });
+    // 2. Increment count
+    if (!itemsByCategory[primaryCategory]) {
+        itemsByCategory[primaryCategory] = 0;
+    }
+    itemsByCategory[primaryCategory]++;
+});
         
         // Build warning message if needed
         let warningHtml = '';
@@ -796,6 +912,7 @@ async function loadMenuItemsPage() {
                     </div>
                 </div>
                 
+                <!-- Category Filter Section -->
                 <div class="category-filter-container" id="category-filter-container">
                     ${buildCategoryFilterButtons(allCategories, itemsByCategory, validCategories, menuItems.length)}
                 </div>
@@ -839,14 +956,14 @@ function buildCategoryFilterButtons(allCategories, itemsByCategory, validCategor
     `;
     
     // Add "Uncategorized" if there are items without category
-    if (itemsByCategory['Uncategorized']) {
-        const isInvalid = !validCategories.includes('Uncategorized');
-        buttons += `
-            <button class="category-filter-btn ${isInvalid ? 'invalid' : ''}" onclick="filterByCategory('Uncategorized')" data-category="Uncategorized">
-                <span class="material-icons-round">help</span>
-                Uncategorized (${itemsByCategory['Uncategorized']})  </button>
-        `;
-    }
+ if (itemsByCategory['Uncategorized']) {
+    const isInvalid = !validCategories.includes('Uncategorized');
+    buttons += `
+        <button class="category-filter-btn ${isInvalid ? 'invalid' : ''}" ...>
+            <span class="material-icons-round">help</span>
+            Uncategorized (${itemsByCategory['Uncategorized']})  </button>
+    `;
+}
     
     // Add all other categories
     allCategories.forEach(category => {
@@ -865,6 +982,7 @@ function buildCategoryFilterButtons(allCategories, itemsByCategory, validCategor
     });
     
     // Add search for categories
+    
     const statsHtml = `
         <div class="category-filter-stats" style="margin-left: auto; flex-shrink: 0; background: white; position: sticky; right: 0; box-shadow: -5px 0 10px -5px rgba(0,0,0,0.1); padding-left: 15px;">
             <div class="category-filter-search">
@@ -897,9 +1015,6 @@ function buildMenuItemsTableView(menuItems, validCategories) {
                 const categories = item.categories || [item.category || 'Uncategorized'];
                 const validCount = categories.filter(cat => validCategories.includes(cat)).length;
                 const hasValidCategories = validCount > 0;
-                
-                // Get invalid categories to display error
-                const invalidCategories = categories.filter(cat => !validCategories.includes(cat));
                 
                 return `
                     <tr class="menu-item-row" data-categories="${categories.join(',')}">
@@ -978,6 +1093,9 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                 const hasValidCategories = invalidCategories.length === 0;
                 
                 const imageUrl = item.image || 'https://via.placeholder.com/280x180/F5F7FA/9E9E9E?text=No+Image';
+                const itemCategoryDisplay = categories.length > 1 
+                    ? `${categories[0]} +${categories.length - 1}` 
+                    : categories[0];
                 
                 return `
                     <div class="menu-item-card" 
@@ -986,8 +1104,10 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                          data-id="${item._id || item.id}"
                          data-active="${item.isActive}">
                         
+                        <!-- Image Section -->
                         <img src="${imageUrl}" alt="${item.name}" class="menu-item-image">
                         
+                        <!-- Badge Overlay -->
                         ${!hasValidCategories ? `
                             <span class="menu-item-invalid-badge" title="Invalid categories">
                                 <span class="material-icons-round" style="font-size: 16px;">warning</span>
@@ -995,11 +1115,13 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                         ` : ''}
                         
                         <div class="menu-item-details">
+                            <!-- Header with name and promo badge -->
                             <div class="menu-item-header">
                                 <h3 class="menu-item-name">${item.name}</h3>
                                 ${item.isPromo ? '<span class="menu-item-promo-badge">PROMO</span>' : ''}
                             </div>
                             
+                            <!-- Categories Display -->
                             <div class="menu-item-categories ${!hasValidCategories ? 'invalid' : ''}">
                                 <span class="material-icons-round" style="font-size: 14px;">category</span>
                                 <span class="categories-list">
@@ -1018,6 +1140,7 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                                 ` : ''}
                             </div>
                             
+                            <!-- Item Type -->
                             ${item.type ? `
                                 <div class="menu-item-type">
                                     <span class="material-icons-round" style="font-size: 14px;">restaurant</span>
@@ -1025,6 +1148,7 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                                 </div>
                             ` : ''}
                             
+                            <!-- Prices -->
                             <div class="menu-item-prices">
                                 ${item.isPromo ? `
                                     <span class="menu-item-promo-price">$${item.originalPrice?.toFixed(2)}</span>
@@ -1034,6 +1158,7 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                                 `}
                             </div>
                             
+                            <!-- Status Badges -->
                             <div class="menu-item-status">
                                 <span class="menu-item-status-badge ${item.isActive ? 'badge-success' : 'badge-danger'}">
                                     ${item.isActive ? 'Active' : 'Inactive'}
@@ -1041,6 +1166,7 @@ function buildMenuItemsGridView(menuItems, validCategories) {
                                 ${!hasValidCategories ? '<span class="menu-item-status-badge badge-danger">Category Issue</span>' : ''}
                             </div>
                             
+                            <!-- Action Buttons -->
                             <div class="menu-item-actions">
                                 <button class="menu-item-action-btn edit" onclick="editMenuItem('${item._id || item.id}')">
                                     <span class="material-icons-round" style="font-size: 16px;">edit</span>
@@ -1215,14 +1341,7 @@ function updateCategoryStats(category, visibleCount) {
 }
 
 function initializeMenuView() {
-    let savedView = localStorage.getItem('menuView') || 'table';
-
-    // MOBILE OPTIMIZATION: Force Grid View & Hide Toggles
-    if (window.innerWidth <= 768) {
-        savedView = 'grid';
-        const viewOptions = document.querySelector('.admin-view-options');
-        if (viewOptions) viewOptions.style.display = 'none';
-    }
+    const savedView = localStorage.getItem('menuView') || 'table';
     
     // Wait for DOM to be ready
     setTimeout(() => {
@@ -1456,7 +1575,7 @@ async function loadUsersPage() {
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="users-body">
+                    <tbody>
                         ${users.map(user => `
                             <tr>
                                 <td><strong>${user.fullName || user.username}</strong></td>
@@ -2115,6 +2234,7 @@ function viewOrder(orderId) {
     showNotification('info', `Viewing order ${orderId}`);
 }
 
+JavaScript
 // ================== PROTECTED DELETE LOGIC ==================
 
 async function deleteInvoice(invoiceId) {
