@@ -2049,129 +2049,277 @@
     box-shadow: var(--shadow-soft);
 }
 
-/* ================= MOBILE RESPONSIVENESS ================= */
 
-/* TABLET & MOBILE (Screen width 1024px or less) */
-@media screen and (max-width: 1024px) {
-    /* 1. Sidebar - Hidden by default */
-    .admin-sidebar {
-        transform: translateX(-100%); /* Slide off-screen left */
-        position: fixed;
-        top: 0; left: 0;
-        height: 100vh;
-        z-index: 1000;
-        box-shadow: none;
-        transition: transform 0.3s ease;
-    }
+/* ================== MOBILE EXPERIENCE OVERHAUL ================== */
+@media (max-width: 768px) {
 
-    /* Show Sidebar when 'active' class is added via JS */
-    .admin-sidebar.active {
-        transform: translateX(0); /* Slide in */
-        box-shadow: 5px 0 15px rgba(0,0,0,0.2); /* Add shadow when open */
-    }
-
-    /* 2. Main Content - Full Width */
+    /* --- 1. APP-LIKE HEADER --- */
     .admin-main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px;
+        padding: 80px 15px 80px 15px; /* Extra bottom padding for scroll */
+        background-color: #f4f6f9;
     }
 
-    /* 3. Mobile Toggle Button - Visible */
-    .admin-mobile-toggle {
-        display: block !important; /* Force show */
-        background: transparent;
-        border: none;
-        color: var(--text-dark);
-        font-size: 28px;
-        cursor: pointer;
-        padding: 5px;
-        margin-right: 15px;
-    }
-
-    /* 4. Stats Grid - Auto Stack */
-    /* 2 columns on tablet, 1 on phone */
-    .admin-dashboard-stats {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-}
-
-/* MOBILE PHONES (Screen width 768px or less) */
-@media screen and (max-width: 768px) {
-    /* 1. Header Adjustments */
     .admin-header {
-        flex-wrap: wrap; /* Allow wrapping */
-        gap: 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+        margin-bottom: 20px;
+        border-bottom: none;
+    }
+
+    .admin-header h1 {
+        font-size: 1.5em;
+        font-weight: 800;
+        background: -webkit-linear-gradient(45deg, var(--admin-primary), #b92b27);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Hide Date/Time on mobile to save space, or make it tiny */
+    .admin-datetime {
+        display: none; 
+    }
+
+    /* --- 2. SWIPEABLE STATS CARDS (Carousel) --- */
+    .admin-dashboard-stats {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 15px;
+        padding-bottom: 20px; /* Space for shadow */
+        margin-right: -15px; /* Allow scroll to hit edge */
+        padding-right: 15px;
+        
+        /* Hide Scrollbar but allow scroll */
+        -ms-overflow-style: none;  
+        scrollbar-width: none;  
     }
     
-    .admin-header h1 {
-        font-size: 20px; /* Smaller title */
-    }
-
-    /* Hide Date/Time on small screens to save space */
-    .admin-datetime {
+    .admin-dashboard-stats::-webkit-scrollbar {
         display: none;
     }
 
-    /* 2. Stats Cards - Stack Vertically */
-    .admin-dashboard-stats {
-        grid-template-columns: 1fr; /* 1 card per row */
+    .admin-stat-card {
+        min-width: 85vw; /* Shows a peek of the next card */
+        scroll-snap-align: center;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(124, 77, 255, 0.15);
+        border: none;
+        background: white;
     }
 
-    /* 3. Tables - Horizontal Scroll */
-    /* This prevents the table from breaking the layout */
-    .admin-table-container {
-        padding: 15px;
-        overflow-x: auto; /* Enable scroll */
-        -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
-    }
-    
-    .admin-table {
-        min-width: 600px; /* Force minimum width so columns don't squish */
-    }
-    
-    .admin-table th, 
-    .admin-table td {
-        padding: 10px;
-        font-size: 13px; /* Smaller text */
+    /* --- 3. GLASSMORPHISM SIDEBAR --- */
+    .admin-sidebar {
+        background: rgba(30, 27, 75, 0.95);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        width: 80%;
+        max-width: 300px;
+        box-shadow: 10px 0 50px rgba(0,0,0,0.5);
     }
 
-    /* 4. Modals - Full Screenish */
-    .admin-modal {
-        padding: 10px;
-        align-items: flex-end; /* Sheet-like appearance on some mobile designs */
-    }
-    
-    .admin-modal-content {
-        width: 100%;
-        max-height: 85vh; /* Leave some space at top */
-        border-radius: 12px 12px 0 0; /* Rounded top corners */
-    }
-    
-    /* 5. Forms - Stack Inputs */
-    .item-form-grid {
-        grid-template-columns: 1fr; /* Stack Image + Inputs vertically */
-        gap: 15px;
-    }
-    
-    .image-preview-box {
-        height: 180px; /* Taller preview on mobile */
-    }
-    
-    .form-row {
-        flex-direction: column;
-    }
-
-    /* 6. Buttons - Full Width Actions */
-    .admin-modal-footer {
-        flex-direction: column-reverse; /* Save button on top or full width */
-        gap: 10px;
-    }
-    
-    .admin-modal-footer button {
-        width: 100%;
+    .admin-mobile-toggle {
+        top: 15px;
+        left: 15px;
+        background: white;
+        color: var(--text-dark);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
         justify-content: center;
     }
+
+    /* --- 4. DATA TABLES -> LIST CARDS --- */
+    /* Force tables to look like lists */
+    .admin-table thead {
+        display: none; /* Hide headers */
+    }
+
+    .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .admin-table tr {
+        background: white;
+        margin-bottom: 15px;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        padding: 15px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .admin-table tr:hover {
+        background: white; /* Remove desktop hover */
+        transform: none;
+    }
+
+    .admin-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px dashed #eee;
+        text-align: right;
+    }
+
+    .admin-table td:last-child {
+        border-bottom: none;
+        justify-content: flex-end;
+        padding-top: 15px;
+        gap: 10px;
+    }
+
+    /* Add Labels via CSS specific to Order Table structure */
+    /* Row 1: ID */
+    .admin-table td:nth-child(1)::before { content: "ID"; font-weight: 600; color: #999; font-size: 0.85em; }
+    /* Row 2: Table */
+    .admin-table td:nth-child(2)::before { content: "Table"; font-weight: 600; color: #999; font-size: 0.85em; }
+    /* Row 3: Amount */
+    .admin-table td:nth-child(3)::before { content: "Total"; font-weight: 600; color: #999; font-size: 0.85em; }
+    /* Row 4: Status */
+    .admin-table td:nth-child(4)::before { content: "Status"; font-weight: 600; color: #999; font-size: 0.85em; }
+    /* Row 5: Time */
+    .admin-table td:nth-child(5)::before { content: "Time"; font-weight: 600; color: #999; font-size: 0.85em; }
+
+    /* Fix User Table specifically */
+    #users-body td:nth-child(1)::before { content: "Name"; }
+    #users-body td:nth-child(2)::before { content: "ID"; }
+    #users-body td:nth-child(3)::before { content: "Role"; }
+
+    /* --- 5. BOTTOM SHEET MODALS --- */
+    .admin-modal {
+        align-items: flex-end; /* Push content to bottom */
+        padding: 0;
+    }
+
+    .admin-modal-content {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 25px 25px 0 0; /* Rounded top only */
+        max-height: 85vh; /* 85% of screen height */
+        margin: 0;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+
+    .admin-modal-header {
+        border-bottom: none;
+        padding: 20px 25px 10px 25px;
+    }
+
+    /* Add a "Handle" to look like a draggable sheet */
+    .admin-modal-header::before {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 5px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        margin: -10px auto 15px auto;
+    }
+
+    .admin-modal-footer {
+        padding-bottom: 30px; /* Safe area for iOS home bar */
+    }
+
+    /* --- 6. FORM OPTIMIZATIONS --- */
+    .form-row {
+        grid-template-columns: 1fr; /* Stack inputs */
+        gap: 15px;
+    }
+
+    .admin-form-control {
+        font-size: 16px; /* Prevent iOS zoom on focus */
+        padding: 14px;
+        background: #f9f9f9;
+        border: 1px solid transparent;
+    }
+    
+    .admin-form-control:focus {
+        background: white;
+        border-color: var(--admin-primary);
+    }
+
+    /* --- 7. QUICK ACTIONS GRID --- */
+    .admin-quick-actions {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+    }
+    
+    .admin-section-title {
+        padding-left: 5px;
+    }
+
+    .admin-quick-grid {
+        gap: 10px;
+    }
+
+    .admin-quick-btn {
+        background: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border-radius: 16px;
+        padding: 15px;
+        display: flex;
+        flex-direction: row; /* Horizontal on mobile */
+        align-items: center;
+        text-align: left;
+        gap: 15px;
+    }
+
+    .quick-btn-icon {
+        margin-bottom: 0;
+        background: rgba(124, 77, 255, 0.1);
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 24px;
+    }
+
+    /* --- 8. MENU GRID VIEW ADJUSTMENTS --- */
+    .menu-items-grid {
+        grid-template-columns: 1fr; /* 1 Column */
+        padding: 0;
+        gap: 20px;
+    }
+    
+    .menu-item-card {
+        display: flex;
+        flex-direction: row; /* Horizontal card */
+        height: auto;
+        border-radius: 16px;
+        border: none;
+    }
+    
+    .menu-item-image {
+        width: 100px;
+        height: auto;
+        min-height: 100px;
+        border-bottom: none;
+        border-right: 1px solid #f0f0f0;
+    }
+    
+    .menu-item-details {
+        padding: 15px;
+        justify-content: center;
+    }
+    
+    .menu-item-actions {
+        /* Hide complex actions on mobile grid, or stack them */
+        flex-direction: column;
+        display: none; /* Simplify view */
+    }
+    
+    /* Show actions only when clicking a button/icon (optional UX) */
 }
+
 
 
