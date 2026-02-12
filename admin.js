@@ -2061,26 +2061,43 @@ async function toggleMenuItemStatus(itemId, currentStatus) {
 // ================== OTHER MODAL FUNCTIONS ==================
 function showAddUserModal(userId = null) {
     const modal = document.getElementById('add-user-modal');
+    const form = document.getElementById('add-user-form');
     const title = modal.querySelector('.admin-modal-title');
-    document.getElementById('add-user-form').reset();
     
+    // Reset form first
+    form.reset();
+    document.getElementById('edit-user-id').value = '';
+
     if (userId) {
-        const user = allUsers.find(u => u._id === userId);
+        // === EDIT MODE ===
         currentEditingId = userId;
-        title.textContent = 'Edit Operator';
-        document.getElementById('edit-user-id').value = userId;
-        document.getElementById('user-fullname').value = user.fullName;
-        document.getElementById('user-username').value = user.username;
-        document.getElementById('user-role').value = user.role;
-        document.getElementById('user-pin').required = false;
-        document.getElementById('user-pin').placeholder = "(Leave blank to keep current PIN)";
+        title.textContent = 'Edit Operator Info';
+        
+        // Find user from the global list loaded earlier
+        const user = allUsers.find(u => (u._id === userId || u.id === userId));
+        
+        if (user) {
+            document.getElementById('edit-user-id').value = userId;
+            document.getElementById('user-fullname').value = user.fullName || '';
+            document.getElementById('user-username').value = user.username || '';
+            document.getElementById('user-role').value = user.role || 'cashier';
+            
+            // Don't fill the PIN for security. 
+            // Add a placeholder telling them it's optional.
+            const pinInput = document.getElementById('user-pin');
+            pinInput.value = ''; 
+            pinInput.placeholder = "Leave blank to keep current PIN";
+            pinInput.required = false; // Not required when editing
+        }
     } else {
+        // === CREATE MODE ===
         currentEditingId = null;
         title.textContent = 'Create New Operator';
-        document.getElementById('edit-user-id').value = '';
-        document.getElementById('user-pin').required = true;
-        document.getElementById('user-pin').placeholder = "e.g. 1234";
+        const pinInput = document.getElementById('user-pin');
+        pinInput.placeholder = "e.g. 1234";
+        pinInput.required = true; // Required when creating
     }
+    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
@@ -2108,31 +2125,70 @@ function resetUserForm() {
 }
 
 async function saveUser() {
+    // Get Values
     const id = document.getElementById('edit-user-id').value;
+    const fullName = document.getElementById('user-fullname').value;
+    const username = document.getElementById('user-username').value;
+    const password = document.getElementById('user-pin').value; // This is the PIN
+    const role = document.getElementById('user-role').value;
+
+    // Validation
+    if (!username) {
+        showNotification('error', 'Operator ID is required');
+        return;
+    }
+    
+    // If creating new user, PIN is mandatory
+    if (!id && !password) {
+        showNotification('error', 'Security PIN is required for new users');
+        return;
+    }
+
+    // Build Data Object
     const userData = {
-        id: id || null,
-        fullName: document.getElementById('user-fullname').value,
-        username: document.getElementById('user-username').value,
-        password: document.getElementById('user-pin').value,
-        role: document.getElementById('user-role').value
+        fullName,
+        username,
+        role,
+        // Only include password if the user typed something
+        ...(password && { password }) 
     };
 
     try {
-        const res = await fetch(`${API_BASE_URL}/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-
-        if (res.ok) {
-            showNotification('success', id ? 'User updated' : 'User created');
-            hideModal('add-user-modal');
-            navigateTo('users'); // Refresh
+        let response;
+        if (id) {
+            // === UPDATE (PUT) ===
+            // Note: We use /api/admin/users because that's where the PUT route is
+            response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
         } else {
-            const err = await res.json();
-            showNotification('error', err.error);
+            // === CREATE (POST) ===
+            response = await fetch(`${API_BASE_URL}/admin/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
         }
-    } catch (e) { showNotification('error', 'Server Error'); }
+
+        if (response.ok) {
+            showNotification('success', `User ${id ? 'updated' : 'created'} successfully!`);
+            hideModal('add-user-modal');
+            // Reload the list to see changes
+            if (typeof loadPageContent === 'function') {
+                loadPageContent('users'); 
+            } else {
+                window.location.reload();
+            }
+        } else {
+            const err = await response.json();
+            showNotification('error', err.error || 'Failed to save user');
+        }
+    } catch (e) {
+        console.error(e);
+        showNotification('error', 'Server connection error');
+    }
 }
 
 function editUser(id) {
