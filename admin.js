@@ -1554,22 +1554,17 @@ async function loadInvoicesPage() {
 
 async function loadUsersPage() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/users`);
-        if (!response.ok) throw new Error('Failed to fetch users');
-        
+        const response = await fetch(`${API_BASE_URL}/users`);
         const users = await response.json();
-        allUsers = users;
+        allUsers = users; // Store in global state for editing
         
         return `
             <div class="admin-table-container">
                 <div class="admin-table-header">
-                    <div class="admin-table-title">User Management</div>
-                    <div class="admin-table-actions">
-                        <button class="btn-admin btn-admin-primary" onclick="showAddUserModal()">
-                            <span class="material-icons-round">person_add</span>
-                            Add User
-                        </button>
-                    </div>
+                    <div class="admin-table-title">User Management (${users.length})</div>
+                    <button class="btn-admin btn-admin-primary" onclick="showAddUserModal()">
+                        <span class="material-icons-round">person_add</span> Add User
+                    </button>
                 </div>
                 <table class="admin-table">
                     <thead>
@@ -1577,7 +1572,7 @@ async function loadUsersPage() {
                             <th>Full Name</th>
                             <th>Operator ID</th>
                             <th>Role</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1585,28 +1580,24 @@ async function loadUsersPage() {
                             <tr>
                                 <td><strong>${user.fullName || user.username}</strong></td>
                                 <td>${user.username}</td>
+                                <td><span class="admin-badge badge-success">${user.role.toUpperCase()}</span></td>
                                 <td>
-                                    <span class="admin-badge ${user.role === 'admin' ? 'badge-danger' : 'badge-success'}">
-                                        ${user.role?.toUpperCase()}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn-admin btn-admin-secondary btn-small" onclick="editUser('${user._id || user.id}')">
-                                        <span class="material-icons-round" style="font-size: 16px;">edit</span>
+                                    <button class="btn-admin btn-admin-secondary btn-small" onclick="editUser('${user._id}')" title="Edit Info">
+                                        <span class="material-icons-round">edit</span>
                                     </button>
-                                    <button class="btn-admin btn-admin-danger btn-small" onclick="deleteUser('${user._id || user.id}')">
-                                        <span class="material-icons-round" style="font-size: 16px;">delete</span>
+                                    <button class="btn-admin btn-admin-warning btn-small" onclick="resetUserPassword('${user._id}')" title="Reset PIN">
+                                        <span class="material-icons-round">lock_reset</span>
+                                    </button>
+                                    <button class="btn-admin btn-admin-danger btn-small" onclick="deleteUser('${user._id}')">
+                                        <span class="material-icons-round">delete</span>
                                     </button>
                                 </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
-            </div>
-        `;
-    } catch (error) {
-        return `<div class="error-state">Failed to load users</div>`;
-    }
+            </div>`;
+    } catch (e) { return `<div class="error">Failed to load users</div>`; }
 }
 
 async function loadSettingsPage() {
@@ -2070,100 +2061,78 @@ async function toggleMenuItemStatus(itemId, currentStatus) {
 // ================== OTHER MODAL FUNCTIONS ==================
 function showAddUserModal(userId = null) {
     const modal = document.getElementById('add-user-modal');
-    const form = document.getElementById('add-user-form');
     const title = modal.querySelector('.admin-modal-title');
+    document.getElementById('add-user-form').reset();
     
-    // Reset form first
-    form.reset();
-    document.getElementById('edit-user-id').value = '';
-
     if (userId) {
-        // Edit Mode
+        const user = allUsers.find(u => u._id === userId);
         currentEditingId = userId;
         title.textContent = 'Edit Operator';
-        const user = allUsers.find(u => (u._id === userId || u.id === userId));
-        
-        if (user) {
-            document.getElementById('edit-user-id').value = userId;
-            document.getElementById('user-fullname').value = user.fullName || '';
-            document.getElementById('user-username').value = user.username || '';
-            document.getElementById('user-role').value = user.role || 'cashier';
-            document.getElementById('user-pin').placeholder = "Enter new PIN to reset";
-        }
+        document.getElementById('edit-user-id').value = userId;
+        document.getElementById('user-fullname').value = user.fullName;
+        document.getElementById('user-username').value = user.username;
+        document.getElementById('user-role').value = user.role;
+        document.getElementById('user-pin').required = false;
+        document.getElementById('user-pin').placeholder = "(Leave blank to keep current PIN)";
     } else {
-        // Create Mode
         currentEditingId = null;
         title.textContent = 'Create New Operator';
+        document.getElementById('edit-user-id').value = '';
+        document.getElementById('user-pin').required = true;
         document.getElementById('user-pin').placeholder = "e.g. 1234";
     }
-    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 }
+// --- RESET PASSWORD FUNCTION ---
+async function resetUserPassword(userId) {
+    const newPin = prompt("Enter new 4-digit Security PIN:");
+    if (!newPin) return;
+    if (newPin.length !== 4 || isNaN(newPin)) {
+        showNotification('error', 'PIN must be exactly 4 digits');
+        return;
+    }
 
+    try {
+        const res = await fetch(`${API_BASE_URL}/users/${userId}/reset-pin`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newPin })
+        });
+        if (res.ok) showNotification('success', 'PIN updated successfully');
+    } catch (e) { showNotification('error', 'Failed to reset PIN'); }
+}
 function resetUserForm() {
     document.getElementById('user-form').reset();
     document.getElementById('edit-user-id').value = '';
 }
 
 async function saveUser() {
-    // 1. Get Values directly from the specific inputs we created
     const id = document.getElementById('edit-user-id').value;
-    const fullName = document.getElementById('user-fullname').value;
-    const username = document.getElementById('user-username').value;
-    const password = document.getElementById('user-pin').value;
-    const role = document.getElementById('user-role').value;
-
-    // 2. Validation
-    if (!username) {
-        showNotification('error', 'Operator ID is required');
-        return;
-    }
-    
-    // Require PIN only for new users
-    if (!id && !password) {
-        showNotification('error', 'Security PIN is required');
-        return;
-    }
-
     const userData = {
-        fullName,
-        username,
-        role,
-        // Only send password if it was entered
-        ...(password && { password }) 
+        id: id || null,
+        fullName: document.getElementById('user-fullname').value,
+        username: document.getElementById('user-username').value,
+        password: document.getElementById('user-pin').value,
+        role: document.getElementById('user-role').value
     };
 
     try {
-        let response;
-        if (id) {
-            // UPDATE
-            response = await fetch(`${API_BASE_URL}/users/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
-        } else {
-            // CREATE
-            response = await fetch(`${API_BASE_URL}/users`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
-            });
-        }
+        const res = await fetch(`${API_BASE_URL}/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        });
 
-        if (response.ok) {
-            showNotification('success', `User ${id ? 'updated' : 'created'} successfully!`);
+        if (res.ok) {
+            showNotification('success', id ? 'User updated' : 'User created');
             hideModal('add-user-modal');
-            loadPageContent('users'); // Refresh List
+            navigateTo('users'); // Refresh
         } else {
-            const err = await response.json();
-            showNotification('error', err.error || 'Failed to save');
+            const err = await res.json();
+            showNotification('error', err.error);
         }
-    } catch (e) {
-        console.error(e);
-        showNotification('error', 'Server Error');
-    }
+    } catch (e) { showNotification('error', 'Server Error'); }
 }
 
 function editUser(id) {
