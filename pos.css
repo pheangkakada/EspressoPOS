@@ -1950,140 +1950,134 @@ body.modal-open {
     }
 }
     
-/* --- ADVANCED MOBILE RECONSTRUCTION --- */
+/* --- MOBILE RESPONSIVENESS --- */
+
+@media (max-width: 1024px) {
+    .pos-container {
+        grid-template-columns: 70px 1fr; /* Narrower sidebar */
+        gap: 10px;
+    }
+    
+    .pos-container:has(#menuPage:not(.hidden)) {
+        grid-template-columns: 70px 1fr; /* Hide order panel grid column */
+    }
+
+    /* Move Order Panel to a slide-over or bottom-fixed view */
+    .order-panel {
+        position: fixed;
+        right: -100%; /* Hidden by default on tablet/mobile */
+        top: 0;
+        bottom: 0;
+        width: 350px;
+        z-index: 100;
+        transition: right 0.3s ease;
+        border-radius: 0;
+    }
+
+    /* Logic to show order panel when needed (e.g., adding a class) */
+    .order-panel.mobile-show {
+        right: 0;
+    }
+}
+
 @media (max-width: 768px) {
-    /* 1. Layout Reset */
+    body {
+        font-size: 14px;
+        overflow-y: auto; /* Allow scrolling on mobile */
+    }
+
     .pos-container {
         display: flex;
-        flex-direction: column;
-        height: 100dvh; /* Use dynamic viewport height for mobile browsers */
-        gap: 0;
-        background-color: var(--background-light);
+        flex-direction: column; /* Stack sidebar and content */
+        height: auto;
+        min-height: 100vh;
     }
 
-    /* 2. Sidebar to Bottom Navigation */
+    /* Sidebar becomes a bottom or top navigation bar */
     .sidebar {
-        order: 3; /* Move to bottom */
-        width: 100%;
-        height: 65px;
         flex-direction: row;
-        padding: 0 10px;
+        width: 100%;
+        height: 60px;
+        padding: 0 20px;
         border-radius: 0;
-        justify-content: space-around;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
     }
 
-    .logo, .user-profile {
-        display: none; /* Hide non-essential branding on mobile nav */
+    .logo {
+        margin-bottom: 0;
+        margin-right: 20px;
     }
 
     .nav-links {
         flex-direction: row;
-        width: 100%;
-        justify-content: space-around;
-        gap: 0;
+        gap: 10px;
     }
 
-    .nav-btn {
-        flex: 1;
-        border-radius: 0;
+    .user-profile {
+        margin-left: auto;
+    }
+
+    .main-content {
+        padding: 15px;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    /* Menu Grid Adjustments */
+    .menu-items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
         padding: 10px;
     }
 
-    /* 3. Main Content Area */
-    .main-content {
-        order: 1;
-        flex: 1;
-        padding: 15px;
-        padding-bottom: 80px; /* Space for FAB */
-        overflow-y: auto;
+    .item-image-container {
+        height: 100px;
     }
 
-    .menu-header h2 { font-size: 1.5em; }
-    
-    /* 4. Category Chips (Horizontal Scroll) */
-    .menu-categories {
-        padding: 5px 0;
-        margin-bottom: 15px;
-    }
-
+    /* Category Buttons Scroll */
     .category-btn {
-        width: auto;
-        min-width: 80px;
-        padding: 0 15px;
-        height: 36px;
+        width: 90px;
+        font-size: 0.8em;
     }
 
-    /* 5. Menu Grid - 2 Column Layout */
-    .menu-items-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        padding: 5px;
-        background: transparent;
-    }
-
-    .item-image-container { height: 110px; }
-    .item-name { font-size: 1em; }
-
-    /* 6. Order Panel as a "Bottom Sheet" Drawer */
-    .order-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 85vh;
-        width: 100%;
-        z-index: 2000;
-        border-radius: 20px 20px 0 0;
-        transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex !important; /* Override .hidden if JS handles it via class */
-    }
-
-    .order-panel.active {
-        transform: translateY(0);
-        box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
-    }
-
-    /* Drag handle for the drawer */
-    .order-panel::before {
-        content: "";
-        width: 40px;
-        height: 4px;
-        background: #ddd;
-        border-radius: 2px;
-        margin: 10px auto;
-        display: block;
-    }
-
-    /* 7. Floating Action Button (FAB) */
-    .mobile-fab {
+    /* Floating Action Button for Mobile Order Panel */
+    .mobile-cart-toggle {
         display: flex !important;
         position: fixed;
-        bottom: 80px; /* Above bottom nav */
+        bottom: 20px;
         right: 20px;
-        background: var(--primary-color);
+        background-color: var(--primary-color);
         color: white;
         width: 60px;
         height: 60px;
-        border-radius: 30px;
+        border-radius: 50%;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 4px 15px rgba(124, 77, 255, 0.4);
-        z-index: 1500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 101;
         border: none;
     }
 
-    .cart-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background: var(--price-red);
-        color: white;
-        border-radius: 10px;
-        padding: 2px 8px;
-        font-size: 12px;
-        font-weight: bold;
-        border: 2px solid white;
+    .order-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Modals for Mobile */
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .item-modal-content {
+        grid-template-columns: 1fr; /* Stack image and controls */
+        text-align: center;
+    }
+
+    .item-modal-info img {
+        margin: 0 auto;
     }
 }

@@ -2978,6 +2978,8 @@ function updateMobileCartCount() {
     }
 }
 
+// Call this inside your existing updateOrderDisplay() function
+// ... inside updateOrderDisplay() ...
 
 
 // Make it global so other scripts can use it
