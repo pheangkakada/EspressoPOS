@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EspressoPOS | Login</title>
+    <title>EspressoPOS | Pro Terminal</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Modern Clean Palette */
-            --primary: #6366f1;       /* Indigo */
-            --primary-hover: #4f46e5;
-            --bg-body: #f3f4f6;       /* Light Gray */
-            --surface: #ffffff;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-            --border: #e5e7eb;
-            --ring: rgba(99, 102, 241, 0.2);
-            --radius: 16px;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            /* Pro Light Theme */
+            --bg-base: #f1f5f9;       /* Light cool gray background */
+            --bg-surface: #ffffff;    /* Pure white card */
+            --bg-input: #f8fafc;      /* Very light input field */
+            --accent: #7C4DFF;        /* Original Purple */
+            --accent-hover: #6A42D0;
+            --text-main: #0f172a;     /* Very dark slate text */
+            --text-muted: #64748b;    /* Muted text */
+            --border: #e2e8f0;        /* Light border */
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius: 8px; /* Sharper corners for a "pro" look */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
+            font-family: var(--font-main);
+            background: var(--bg-base);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -34,243 +38,298 @@
             padding: 20px;
         }
 
-        /* --- Main Card Layout --- */
-        .login-card {
+        /* --- Main Pro Layout --- */
+        .auth-container {
             display: flex;
             width: 100%;
-            max-width: 900px;
+            max-width: 960px;
             min-height: 600px;
-            background: var(--surface);
-            border-radius: 24px;
-            box-shadow: var(--shadow);
+            background: var(--bg-surface);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); /* Softer shadow for light mode */
+            border: 1px solid var(--border);
             overflow: hidden;
         }
 
-        /* --- Left Side (Brand) --- */
-        .brand-side {
-            flex: 1;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            padding: 60px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Decorative Circles in Background */
-        .brand-side::before {
-            content: ''; position: absolute; top: -50px; left: -50px;
-            width: 200px; height: 200px; background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-        .brand-side::after {
-            content: ''; position: absolute; bottom: -50px; right: -50px;
-            width: 300px; height: 300px; background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-        }
-
-        .brand-content { position: relative; z-index: 2; }
-        .brand-title { font-size: 2.8rem; font-weight: 800; line-height: 1.1; margin-bottom: 16px; }
-        .brand-tagline { font-size: 1.1rem; opacity: 0.9; font-weight: 500; }
-        .brand-footer { font-size: 0.85rem; opacity: 0.7; margin-top: auto; }
-
-        /* --- Right Side (Form) --- */
-        .form-side {
-            flex: 1;
-            padding: 60px;
+        /* --- Left Side (System Brand) --- */
+        .system-panel {
+            flex: 0.8;
+            background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+            border-right: 1px solid var(--border);
+            padding: 50px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            background: var(--surface);
+            position: relative;
         }
 
-        .header-group { margin-bottom: 40px; }
-        .header-group h2 { font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
-        .header-group p { color: var(--text-sub); }
+        .system-panel::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--accent);
+        }
 
-        /* --- Staff Slider --- */
-        .staff-scroll-area {
+        .brand-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            color: var(--text-main);
+        }
+
+        .brand-subtitle {
+            font-family: var(--font-mono);
+            color: var(--accent);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            margin-top: auto;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+        }
+
+        /* --- Right Side (Form) --- */
+        .form-panel {
+            flex: 1.2;
+            padding: 50px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-header { margin-bottom: 40px; }
+        .form-header h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 4px; }
+        .form-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* --- Staff Picker --- */
+        .staff-scroll {
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            padding-bottom: 12px;
-            margin-bottom: 30px;
-            scrollbar-width: none; /* Firefox */
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            scrollbar-width: none;
         }
-        .staff-scroll-area::-webkit-scrollbar { display: none; } /* Chrome */
+        .staff-scroll::-webkit-scrollbar { display: none; }
 
-        .avatar-btn {
-            min-width: 60px;
-            height: 60px;
-            border-radius: 50%; /* Circle */
-            background: #f9fafb;
-            border: 2px solid var(--border);
+        .staff-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius);
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            color: var(--text-sub);
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
+            flex-shrink: 0;
+            text-transform: uppercase;
         }
 
-        .avatar-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
-        .avatar-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .staff-avatar:hover { border-color: var(--accent); color: var(--accent); background: var(--bg-input); }
+        .staff-avatar.active { 
+            background: rgba(124, 77, 255, 0.1); 
+            border-color: var(--accent); 
+            color: var(--accent); 
+        }
 
         /* --- Selected User Pill --- */
         .user-badge {
             display: none;
-            background: #eff6ff;
-            border: 1px solid #dbeafe;
-            padding: 12px 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 16px;
             border-radius: var(--radius);
             margin-bottom: 24px;
             align-items: center;
             justify-content: space-between;
-            animation: fadeIn 0.3s ease;
         }
         .user-badge.visible { display: flex; }
 
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .user-icon { background: #dbeafe; color: var(--primary); padding: 8px; border-radius: 50%; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-icon { color: var(--accent); display: flex; align-items: center; }
         
-        .change-link {
-            background: none; border: none; 
-            color: var(--primary); font-size: 0.85rem; font-weight: 600; 
-            cursor: pointer;
+        .change-btn {
+            background: transparent; border: 1px solid var(--border); 
+            color: var(--text-main); font-size: 0.75rem; font-weight: 600; 
+            padding: 6px 12px; border-radius: 4px; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.2s;
         }
+        .change-btn:hover { background: var(--bg-input); }
 
         /* --- Inputs --- */
-        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group { margin-bottom: 24px; }
         .input-group.hide { display: none; }
         
         .input-label {
-            display: block; font-size: 0.85rem; font-weight: 500; 
-            color: var(--text-main); margin-bottom: 8px;
+            display: block; font-size: 0.75rem; font-weight: 600; 
+            color: var(--text-muted); margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
         .form-input {
             width: 100%;
-            padding: 14px 16px;
-            font-size: 1rem;
+            padding: 16px;
+            font-size: 1.1rem;
             color: var(--text-main);
-            background: #f9fafb;
+            background: var(--bg-input);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: var(--radius);
             transition: all 0.2s;
+            font-family: var(--font-mono); /* Technical feel for inputs */
         }
 
         .form-input:focus {
-            background: white;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--ring);
+            background: var(--bg-surface);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
         }
+        .form-input::placeholder { color: #94a3b8; }
 
         /* --- Buttons --- */
         .btn-submit {
             width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
+            padding: 18px;
+            background: var(--accent);
+            color: #ffffff; 
             border: none;
-            border-radius: 12px;
+            border-radius: var(--radius);
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: all 0.2s;
             margin-top: 10px;
         }
-        .btn-submit:hover { background: var(--primary-hover); }
+        .btn-submit:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3); }
         .btn-submit:active { transform: scale(0.98); }
-        .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-submit:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
 
-        .btn-text {
+        .sys-logs-btn {
             background: none; border: none; 
-            color: var(--text-sub); font-size: 0.85rem; 
-            margin-top: 24px; cursor: pointer; 
-            text-decoration: none; width: 100%;
+            color: var(--text-muted); font-size: 0.8rem; 
+            margin-top: 30px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; font-family: var(--font-mono);
+            transition: color 0.2s;
         }
-        .btn-text:hover { color: var(--primary); }
+        .sys-logs-btn:hover { color: var(--text-main); }
 
-        /* --- Notification & Modal --- */
+        /* --- Notify & Modal (Light theme) --- */
         .notify {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: #ef4444; color: white; padding: 12px 24px; border-radius: 50px;
-            font-weight: 500; opacity: 0; visibility: hidden; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            background: var(--danger); color: white; padding: 12px 24px; border-radius: var(--radius);
+            font-weight: 600; opacity: 0; visibility: hidden; transition: 0.3s;
+            z-index: 1000; font-family: var(--font-mono); font-size: 0.9rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
         .notify.active { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-        .notify.success { background: #10b981; }
+        .notify.success { background: var(--success); color: #ffffff; }
 
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
             z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        .modal-card { width: 100%; max-width: 400px; background: white; border-radius: 20px; padding: 24px; }
-        .log-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .modal-card { 
+            width: 100%; max-width: 500px; 
+            background: var(--bg-surface); 
+            border: 1px solid var(--border);
+            border-radius: var(--radius); 
+            padding: 30px; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+        }
+        .log-row { 
+            display: flex; justify-content: space-between; padding: 16px 0; 
+            border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.85rem;
+        }
+        .log-row:last-child { border-bottom: none; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- RESPONSIVE DESIGN --- */
+        /* --- Responsive --- */
         @media (max-width: 900px) {
-            .brand-side { display: none; } /* Hide decorative side on tablet/mobile */
-            .login-card { max-width: 500px; min-height: auto; }
-            .form-side { padding: 40px; }
+            .system-panel { display: none; }
+            .auth-container { max-width: 500px; min-height: auto; }
+            .form-panel { padding: 40px; }
         }
 
         @media (max-width: 480px) {
-            body { padding: 16px; background: white; align-items: flex-start; }
-            .login-card { box-shadow: none; border-radius: 0; min-height: 0; }
-            .form-side { padding: 20px 0; }
-            .header-group h2 { font-size: 1.5rem; }
+            body { padding: 10px; background: var(--bg-surface); }
+            .auth-container { border: none; border-radius: 0; box-shadow: none; background: transparent;}
+            .form-panel { padding: 20px 10px; }
+            .form-input { padding: 14px; }
+            .staff-avatar { width: 50px; height: 50px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="notify" class="notify">Message</div>
+    <div id="notify" class="notify">SYSTEM_MSG</div>
 
-    <div class="login-card">
-        <aside class="brand-side">
-            <div class="brand-content">
-                <h1 class="brand-title">Espressp<br>POS.</h1>
-                <p class="brand-tagline">Point of Sale System</p>
+    <div class="auth-container">
+        <!-- System Branding Panel -->
+        <aside class="system-panel">
+            <div>
+                <h1 class="brand-title">Paint<br>Coffee</h1>
+                <div class="brand-subtitle">POS CORE V.2.4</div>
             </div>
-            <div class="brand-footer">
-                &copy; 2026 Paint Coffee Co.<br>v2.4.0 (Stable)
+            
+            <div class="system-status">
+                <div class="status-dot"></div>
+                SERVER ONLINE • SECURE CONNECTION
             </div>
         </aside>
 
-        <main class="form-side">
-            <header class="header-group">
-                <h2>Welcome back</h2>
-                <p>Please select your profile or enter ID.</p>
+        <!-- Login Form Panel -->
+        <main class="form-panel">
+            <header class="form-header">
+                <h2>OPERATOR LOGIN</h2>
+                <p>Select profile to authenticate</p>
             </header>
 
-            <div id="staffList" class="staff-scroll-area">
-                <div style="font-size: 13px; color: var(--text-sub);">Loading users...</div>
+            <div id="staffList" class="staff-scroll">
+                <div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">[ FETCHING_USERS... ]</div>
             </div>
 
             <form id="loginForm">
+                <!-- Selected User Badge -->
                 <div id="selectedBadge" class="user-badge">
                     <div class="user-info">
                         <div class="user-icon">
-                            <span class="material-icons-round" style="font-size: 20px;">person</span>
+                            <span class="material-icons-round" style="font-size: 28px;">admin_panel_settings</span>
                         </div>
                         <div>
-                            <div id="badgeName" style="font-weight: 600; font-size: 0.95rem;">User</div>
-                            <div id="badgeRole" style="font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase;">Operator</div>
+                            <div id="badgeName" style="font-weight: 700; font-size: 1rem; text-transform: uppercase;">ADMIN</div>
+                            <div id="badgeRole" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">LEVEL 1</div>
                         </div>
                     </div>
-                    <button type="button" class="change-link" onclick="resetForm()">Change</button>
+                    <button type="button" class="change-btn" onclick="resetForm()">Switch</button>
                 </div>
 
+                <!-- Inputs -->
                 <div id="idGroup" class="input-group">
                     <label class="input-label">Operator ID</label>
-                    <input type="text" id="username" class="form-input" placeholder="e.g. admin" autocomplete="off">
+                    <input type="text" id="username" class="form-input" placeholder="Enter ID..." autocomplete="off">
                 </div>
 
                 <div class="input-group">
@@ -278,27 +337,33 @@
                     <input type="password" id="password" class="form-input" placeholder="••••" required>
                 </div>
 
-                <button type="submit" id="loginBtn" class="btn-submit">Sign In</button>
+                <button type="submit" id="loginBtn" class="btn-submit">Authenticate</button>
             </form>
 
-            <button class="btn-text" onclick="toggleHistory(true)">View recent system activity</button>
+            <button class="sys-logs-btn" onclick="toggleHistory(true)">
+                <span class="material-icons-round" style="font-size: 16px;">terminal</span>
+                VIEW SYSTEM LOGS
+            </button>
         </main>
     </div>
 
+    <!-- System Logs Modal -->
     <div id="historyOverlay" class="modal-overlay" onclick="toggleHistory(false)">
         <div class="modal-card" onclick="event.stopPropagation()">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 1.1rem; font-weight: 700;">System Logs</h3>
-                <button onclick="toggleHistory(false)" style="background: none; border: none; cursor: pointer; color: var(--text-sub);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <h3 style="font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; font-family: var(--font-mono);">> SYSTEM_ACTIVITY_LOG</h3>
+                <button onclick="toggleHistory(false)" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
-            <div id="logContainer">Loading...</div>
+            <div id="logContainer">
+                <div style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem;">Initializing log stream...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- LOGIC (UNCHANGED, SAME AS BEFORE) ---
+        // --- LOGIC (REMAINING THE SAME) ---
         const API_BASE = 'https://nodetest-backend-jwqo.onrender.com/api';
         
         const staffListEl = document.getElementById('staffList');
@@ -318,26 +383,26 @@
                 staffListEl.innerHTML = '';
 
                 if (users.length === 0) {
-                    staffListEl.innerHTML = '<span style="font-size:12px; color:orange">No users.</span>';
+                    staffListEl.innerHTML = '<span style="font-size:12px; color:var(--accent); font-family:var(--font-mono);">[ ERR: NO_USERS ]</span>';
                     return;
                 }
 
                 users.forEach(user => {
                     const btn = document.createElement('div');
-                    btn.className = 'avatar-btn';
-                    btn.textContent = user.username ? user.username.charAt(0).toUpperCase() : '?';
-                    btn.title = user.username; // Tooltip
+                    btn.className = 'staff-avatar';
+                    btn.textContent = user.username ? user.username.charAt(0) : '?';
+                    btn.title = user.username; 
                     btn.onclick = () => selectStaff(btn, user.username, user.role);
                     staffListEl.appendChild(btn);
                 });
             } catch (err) {
                 console.error(err);
-                staffListEl.innerHTML = '<span style="font-size:12px; color:red">Offline</span>';
+                staffListEl.innerHTML = '<span style="font-size:12px; color:var(--danger); font-family:var(--font-mono);">[ ERR: CONNECTION_FAILED ]</span>';
             }
         }
 
         function selectStaff(el, username, role) {
-            document.querySelectorAll('.avatar-btn').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             
             usernameEl.value = username;
@@ -345,14 +410,14 @@
             selectedBadgeEl.classList.add('visible');
             
             badgeNameEl.textContent = username;
-            badgeRoleEl.textContent = role || 'Staff';
+            badgeRoleEl.textContent = role || 'STAFF';
             
             passwordEl.value = '';
             passwordEl.focus();
         }
 
         window.resetForm = function() {
-            document.querySelectorAll('.avatar-btn').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
             idGroupEl.classList.remove('hide');
             selectedBadgeEl.classList.remove('visible');
             usernameEl.value = "";
@@ -365,9 +430,9 @@
             const username = usernameEl.value.trim();
             const password = passwordEl.value.trim();
 
-            if(!username || !password) { showNotify("Missing credentials"); return; }
+            if(!username || !password) { showNotify("ERR: MISSING_DATA"); return; }
 
-            loginBtn.textContent = "Verifying...";
+            loginBtn.textContent = "AUTHENTICATING...";
             loginBtn.disabled = true;
 
             try {
@@ -380,7 +445,7 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    showNotify("Success!", true);
+                    showNotify("ACCESS_GRANTED", true);
                     localStorage.setItem('username', data.user.username);
                     localStorage.setItem('role', data.user.role);
                     
@@ -389,14 +454,14 @@
                             ? 'admin.html' : 'pos.html';
                     }, 800);
                 } else {
-                    showNotify(data.error || "Access Denied");
-                    loginBtn.textContent = "Sign In";
+                    showNotify(data.error || "ERR: INVALID_CREDENTIALS");
+                    loginBtn.textContent = "AUTHENTICATE";
                     loginBtn.disabled = false;
                     passwordEl.value = '';
                 }
             } catch (err) {
-                showNotify("Connection Error");
-                loginBtn.textContent = "Sign In";
+                showNotify("ERR: SERVER_TIMEOUT");
+                loginBtn.textContent = "AUTHENTICATE";
                 loginBtn.disabled = false;
             }
         };
@@ -413,31 +478,31 @@
             if (show) {
                 overlay.style.display = 'flex';
                 const container = document.getElementById('logContainer');
-                container.innerHTML = '<div style="text-align:center; color:#999;">Fetching...</div>';
+                container.innerHTML = '<div style="color:var(--text-muted); font-family:var(--font-mono); font-size:0.85rem;">[ FETCHING_STREAM... ]</div>';
                 
                 try {
                     const res = await fetch(`${API_BASE}/invoices`);
                     const invs = await res.json();
                     
                     if(!res.ok || invs.length === 0) {
-                        container.innerHTML = '<div style="text-align:center;">No data found.</div>';
+                        container.innerHTML = '<div style="color:var(--text-muted); font-family:var(--font-mono); font-size:0.85rem;">[ NO_LOGS_FOUND ]</div>';
                         return;
                     }
 
                     container.innerHTML = invs.slice(0, 5).map(i => `
                         <div class="log-row">
                             <div>
-                                <strong style="color:var(--text-main)">#${i.invoiceId || 'INV'}</strong>
-                                <div style="font-size:11px; color:var(--text-sub)">${i.createdBy || 'Staff'}</div>
+                                <strong style="color:var(--text-main)">INV_${i.invoiceId || i._id.substring(0,6)}</strong>
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">OP: ${i.createdBy || 'SYS'}</div>
                             </div>
                             <div style="text-align:right">
-                                <strong style="color:var(--primary)">$${i.total ? i.total.toFixed(2) : '0.00'}</strong>
-                                <div style="font-size:11px; color:var(--text-sub)">${new Date(i.date).toLocaleTimeString()}</div>
+                                <strong style="color:var(--accent)">$${i.total ? i.total.toFixed(2) : '0.00'}</strong>
+                                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${new Date(i.date).toLocaleTimeString()}</div>
                             </div>
                         </div>
                     `).join('');
                 } catch (e) { 
-                    container.innerHTML = '<div style="color:red; text-align:center;">Load failed.</div>';
+                    container.innerHTML = '<div style="color:var(--danger); font-family:var(--font-mono); font-size:0.85rem;">[ ERR: STREAM_FAILED ]</div>';
                 }
             } else { 
                 overlay.style.display = 'none'; 
