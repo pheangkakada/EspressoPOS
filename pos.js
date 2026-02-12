@@ -2978,56 +2978,7 @@ function updateMobileCartCount() {
     }
 }
 
-// --- MOBILE ARCHITECTURE HANDLERS ---
-function initMobilePOS() {
-    // 1. Create Mobile Elements if they don't exist
-    if (!document.getElementById('mobileCartToggle')) {
-        const fab = document.createElement('button');
-        fab.id = 'mobileCartToggle';
-        fab.className = 'mobile-cart-fab';
-        fab.style.display = 'none';
-        fab.innerHTML = `
-            <span class="material-icons-round">shopping_cart</span>
-            <span class="cart-badge" id="mobileCartBadge">0</span>
-        `;
-        document.body.appendChild(fab);
 
-        const backdrop = document.createElement('div');
-        backdrop.id = 'mobileDrawerBackdrop';
-        backdrop.className = 'modal-overlay hidden';
-        backdrop.style.zIndex = '1999';
-        document.body.appendChild(backdrop);
-
-        // 2. Toggle Logic
-        const panel = document.querySelector('.order-panel');
-        
-        const toggleDrawer = () => {
-            panel.classList.toggle('mobile-active');
-            backdrop.classList.toggle('hidden');
-        };
-
-        fab.addEventListener('click', toggleDrawer);
-        backdrop.addEventListener('click', toggleDrawer);
-    }
-}
-
-// 3. Update the Badge whenever the order changes
-const originalUpdateDisplay = updateOrderDisplay;
-updateOrderDisplay = function() {
-    originalUpdateDisplay();
-    
-    const totalQty = Object.values(order).reduce((sum, item) => sum + item.quantity, 0);
-    const badge = document.getElementById('mobileCartBadge');
-    if (badge) {
-        badge.textContent = totalQty;
-        // Pulse animation
-        badge.parentElement.style.transform = 'scale(1.1)';
-        setTimeout(() => badge.parentElement.style.transform = 'scale(1)', 150);
-    }
-};
-
-// 4. Auto-Run
-document.addEventListener('DOMContentLoaded', initMobilePOS);
 
 // Make it global so other scripts can use it
 window.showNotification = showNotification;
