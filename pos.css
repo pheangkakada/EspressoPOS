@@ -1809,3 +1809,135 @@ body.modal-open {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
+
+    /* --- MOBILE RESPONSIVENESS --- */
+
+@media (max-width: 1024px) {
+    .pos-container {
+        grid-template-columns: 70px 1fr; /* Narrower sidebar */
+        gap: 10px;
+    }
+    
+    .pos-container:has(#menuPage:not(.hidden)) {
+        grid-template-columns: 70px 1fr; /* Hide order panel grid column */
+    }
+
+    /* Move Order Panel to a slide-over or bottom-fixed view */
+    .order-panel {
+        position: fixed;
+        right: -100%; /* Hidden by default on tablet/mobile */
+        top: 0;
+        bottom: 0;
+        width: 350px;
+        z-index: 100;
+        transition: right 0.3s ease;
+        border-radius: 0;
+    }
+
+    /* Logic to show order panel when needed (e.g., adding a class) */
+    .order-panel.mobile-show {
+        right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+        overflow-y: auto; /* Allow scrolling on mobile */
+    }
+
+    .pos-container {
+        display: flex;
+        flex-direction: column; /* Stack sidebar and content */
+        height: auto;
+        min-height: 100vh;
+    }
+
+    /* Sidebar becomes a bottom or top navigation bar */
+    .sidebar {
+        flex-direction: row;
+        width: 100%;
+        height: 60px;
+        padding: 0 20px;
+        border-radius: 0;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .logo {
+        margin-bottom: 0;
+        margin-right: 20px;
+    }
+
+    .nav-links {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .user-profile {
+        margin-left: auto;
+    }
+
+    .main-content {
+        padding: 15px;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    /* Menu Grid Adjustments */
+    .menu-items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .item-image-container {
+        height: 100px;
+    }
+
+    /* Category Buttons Scroll */
+    .category-btn {
+        width: 90px;
+        font-size: 0.8em;
+    }
+
+    /* Floating Action Button for Mobile Order Panel */
+    .mobile-cart-toggle {
+        display: flex !important;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: var(--primary-color);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 101;
+        border: none;
+    }
+
+    .order-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Modals for Mobile */
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .item-modal-content {
+        grid-template-columns: 1fr; /* Stack image and controls */
+        text-align: center;
+    }
+
+    .item-modal-info img {
+        margin: 0 auto;
+    }
+}

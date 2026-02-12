@@ -2953,6 +2953,33 @@ function showNotification(type, message) {
         }
     }, 3000);
 }
+// Mobile Cart Toggle Logic
+const mobileCartBtn = document.getElementById('mobileCartBtn');
+const orderPanel = document.querySelector('.order-panel');
+
+if (mobileCartBtn) {
+    mobileCartBtn.addEventListener('click', () => {
+        orderPanel.classList.toggle('mobile-show');
+        // Update icon based on state
+        const icon = orderPanel.classList.contains('mobile-show') ? 'close' : 'shopping_cart';
+        mobileCartBtn.querySelector('.material-icons-round').textContent = icon;
+    });
+}
+
+// Update Cart Count for Mobile
+function updateMobileCartCount() {
+    const count = Object.values(order).reduce((sum, item) => sum + item.quantity, 0);
+    const countBadge = document.getElementById('mobileCartCount');
+    if (countBadge) {
+        countBadge.textContent = count;
+        // Show/Hide button based on if items exist (optional)
+        // mobileCartBtn.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// Call this inside your existing updateOrderDisplay() function
+// ... inside updateOrderDisplay() ...
+updateMobileCartCount();
 
 // Make it global so other scripts can use it
 window.showNotification = showNotification;
