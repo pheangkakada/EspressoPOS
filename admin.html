@@ -4,189 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - POS System</title>
-    <link rel="stylesheet" href="pos.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <button class="admin-mobile-toggle" onclick="toggleSidebar()">
-        <span class="material-icons-round">menu</span>
-    </button>
 
     <div class="admin-container">
         <aside class="admin-sidebar">
             <div class="admin-sidebar-header">
                 <h2>
                     <span class="material-icons-round">admin_panel_settings</span>
-                    Admin Dashboard
+                    Admin Panel
                 </h2>
             </div>
 
             <nav class="admin-sidebar-nav">
                 <div class="admin-nav-section">
                     <div class="admin-nav-title">Main</div>
-                    <div class="admin-nav-item active" data-page="dashboard">
-                        <span class="admin-nav-icon material-icons-round">dashboard</span>
-                        <span class="admin-nav-label">Dashboard</span>
+                    <div class="admin-nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+                        <span class="material-icons-round">dashboard</span>
+                        <span>Dashboard</span>
                     </div>
                 </div>
 
                 <div class="admin-nav-section">
                     <div class="admin-nav-title">Menu Management</div>
-                    <div class="admin-nav-item" data-page="menu-items">
-                        <span class="admin-nav-icon material-icons-round">restaurant_menu</span>
-                        <span class="admin-nav-label">Menu Items</span>
+                    <div class="admin-nav-item" data-page="menu-items" onclick="navigateTo('menu-items')">
+                        <span class="material-icons-round">restaurant_menu</span>
+                        <span>Menu Items</span>
                     </div>
-                    <div class="admin-nav-item" data-page="categories">
-                        <span class="admin-nav-icon material-icons-round">category</span>
-                        <span class="admin-nav-label">Categories</span>
+                    <div class="admin-nav-item" data-page="categories" onclick="navigateTo('categories')">
+                        <span class="material-icons-round">category</span>
+                        <span>Categories</span>
                     </div>
                 </div>
                 
                 <div class="admin-nav-section">
-                    <div class="admin-nav-title">Orders & Sales</div>
-                    <div class="admin-nav-item" data-page="orders">
-                        <span class="admin-nav-icon material-icons-round">receipt_long</span>
-                        <span class="admin-nav-label">All Orders</span>
+                    <div class="admin-nav-title">Sales & Orders</div>
+                    <div class="admin-nav-item" data-page="invoices" onclick="navigateTo('invoices')">
+                        <span class="material-icons-round">receipt_long</span>
+                        <span>Invoices</span>
                     </div>
-                    <div class="admin-nav-item" data-page="invoices">
-                        <span class="admin-nav-icon material-icons-round">description</span>
-                        <span class="admin-nav-label">Invoices</span>
-                    </div>
-                    <div class="admin-nav-item" data-page="sales">
-                        <span class="admin-nav-icon material-icons-round">trending_up</span>
-                        <span class="admin-nav-label">Sales Reports</span>
+                    <div class="admin-nav-item" data-page="sales" onclick="navigateTo('sales')">
+                        <span class="material-icons-round">trending_up</span>
+                        <span>Sales Reports</span>
                     </div>
                 </div>
 
                 <div class="admin-nav-section">
                     <div class="admin-nav-title">System</div>
                     <div class="admin-nav-item" data-page="users" onclick="navigateTo('users')">
-                        <span class="material-icons-round">badge</span>
-                        User Management
+                        <span class="material-icons-round">people</span>
+                        <span>Users</span>
                     </div>
-                    <div class="admin-nav-item" data-page="settings">
-                        <span class="admin-nav-icon material-icons-round">settings</span>
-                        <span class="admin-nav-label">Settings</span>
+                    <div class="admin-nav-item" data-page="settings" onclick="navigateTo('settings')">
+                        <span class="material-icons-round">settings</span>
+                        <span>Settings</span>
                     </div>
                 </div>
             </nav>
 
             <div class="admin-sidebar-footer">
-                <div class="admin-user-avatar">
-                    <span class="material-icons-round">person</span>
-                </div>
-                <div class="admin-user-info">
-                    <div class="admin-user-name">Administrator</div>
-                    <div class="admin-user-role">Super Admin</div>
-                </div>
-                <button class="admin-logout-btn" title="Logout" onclick="logout()">
+                <button class="admin-logout-btn" onclick="logout()">
                     <span class="material-icons-round">logout</span>
+                    Logout
                 </button>
             </div>
         </aside>
 
         <main class="admin-main-content">
             <header class="admin-header">
-                <h1 id="page-title">Dashboard Overview</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="admin-mobile-toggle" onclick="toggleSidebar()">
+                        <span class="material-icons-round">menu</span>
+                    </button>
+                    <h1 id="page-title">Dashboard Overview</h1>
+                </div>
+
                 <div class="admin-header-actions">
-                    <div class="admin-datetime" id="adminDateTime">
-                        <span class="material-icons-round">today</span>
+                    <div class="admin-datetime">
                         <span id="current-date">Loading...</span>
-                        <span class="material-icons-round">schedule</span>
                         <span id="current-time">Loading...</span>
                     </div>
                 </div>
             </header>
 
-            <div id="page-content">
+            <div id="dynamic-content">
                 <div id="dashboard-page">
                     <div class="admin-dashboard-stats">
                         <div class="admin-stat-card">
-                            <span class="admin-stat-icon material-icons-round">receipt_long</span>
+                            <span class="material-icons-round admin-stat-icon" style="background:#E3F2FD; color:#1565C0;">receipt</span>
                             <div class="admin-stat-value" id="stat-total-orders">0</div>
                             <div class="admin-stat-label">Total Orders</div>
-                            <div class="admin-stat-trend trend-up">
-                                <span class="material-icons-round">trending_up</span>
-                                <span>12% from last week</span>
-                            </div>
                         </div>
-                        
                         <div class="admin-stat-card">
-                            <span class="admin-stat-icon material-icons-round">attach_money</span>
+                            <span class="material-icons-round admin-stat-icon" style="background:#E8F5E9; color:#2E7D32;">payments</span>
                             <div class="admin-stat-value" id="stat-total-revenue">$0.00</div>
                             <div class="admin-stat-label">Total Revenue</div>
-                            <div class="admin-stat-trend trend-up">
-                                <span class="material-icons-round">trending_up</span>
-                                <span>8% from last week</span>
-                            </div>
                         </div>
-                        
                         <div class="admin-stat-card">
-                            <span class="admin-stat-icon material-icons-round">restaurant</span>
+                            <span class="material-icons-round admin-stat-icon" style="background:#FFF3E0; color:#EF6C00;">restaurant</span>
                             <div class="admin-stat-value" id="stat-menu-items">0</div>
                             <div class="admin-stat-label">Menu Items</div>
-                            <div class="admin-stat-trend trend-up">
-                                <span class="material-icons-round">trending_up</span>
-                                <span>3 new this week</span>
-                            </div>
-                        </div>
-                        
-                        <div class="admin-stat-card">
-                            <span class="admin-stat-icon material-icons-round">person</span>
-                            <div class="admin-stat-value" id="stat-active-users">4</div>
-                            <div class="admin-stat-label">Active Users</div>
-                            <div class="admin-stat-trend trend-down">
-                                <span class="material-icons-round">trending_down</span>
-                                <span>2% from yesterday</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="admin-quick-actions">
-                        <div class="admin-section-title">
-                            <span class="material-icons-round">bolt</span>
-                            Quick Actions
-                        </div>
-                        <div class="admin-quick-grid">
-                            <div class="admin-quick-btn" onclick="showAddMenuItemModal()">
-                                <div class="quick-btn-icon material-icons-round">add_circle</div>
-                                <div class="quick-btn-label">Add Menu Item</div>
-                            </div>
-                            <div class="admin-quick-btn" onclick="navigateTo('invoices')">
-                                <div class="quick-btn-icon material-icons-round">receipt</div>
-                                <div class="quick-btn-label">View Invoices</div>
-                            </div>
-                            <div class="admin-quick-btn" onclick="showAddUserModal()">
-                                <div class="quick-btn-icon material-icons-round">person_add</div>
-                                <div class="quick-btn-label">Add New User</div>
-                            </div>
-                            <div class="admin-quick-btn" onclick="navigateTo('settings')">
-                                <div class="quick-btn-icon material-icons-round">settings</div>
-                                <div class="quick-btn-label">System Settings</div>
-                            </div>
                         </div>
                     </div>
 
                     <div class="admin-table-container">
                         <div class="admin-table-header">
                             <div class="admin-table-title">Recent Orders</div>
-                            <div class="admin-table-actions">
-                                <div class="admin-search-box">
-                                    <span class="material-icons-round">search</span>
-                                    <input type="text" class="admin-search-input" placeholder="Search orders..." id="search-orders">
-                                </div>
-                                <button class="btn-admin btn-admin-primary" onclick="navigateTo('orders')">
-                                    <span class="material-icons-round">visibility</span>
-                                    View All
-                                </button>
-                            </div>
+                            <button class="btn-admin btn-admin-primary" onclick="navigateTo('invoices')">View All</button>
                         </div>
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Order ID</th>
+                                    <th>ID</th>
                                     <th>Table</th>
                                     <th>Amount</th>
                                     <th>Status</th>
@@ -199,177 +133,124 @@
                         </table>
                     </div>
                 </div>
-                
-                <div id="dynamic-content"></div>
             </div>
         </main>
-    </div>
-
-    <div id="add-menu-item-modal" class="admin-modal hidden">
-        <div class="admin-modal-content modal-large">
-            <div class="admin-modal-header">
-                <h3 class="admin-modal-title">Add Menu Item</h3>
-                <button class="admin-modal-close" onclick="hideModal('add-menu-item-modal')">
-                    <span class="material-icons-round">close</span>
-                </button>
-            </div>
-            
-            <div class="admin-modal-body">
-                <form id="menu-item-form" class="item-form-grid">
-                    <input type="hidden" id="edit-menu-item-id">
-                    
-                    <div class="form-section-image">
-                        <div class="image-preview-box" id="image-preview-container">
-                            <img id="image-preview-img" src="" alt="Preview" class="hidden">
-                            <div id="image-preview-placeholder">
-                                <span class="material-icons-round">image</span>
-                                <p>Image Preview</p>
-                            </div>
-                        </div>
-                        <div class="admin-form-group">
-                            <label class="admin-form-label">Image URL</label>
-                            <input type="text" class="admin-form-control" id="item-image" 
-                                   placeholder="https://..." oninput="updateImagePreview(this.value)">
-                        </div>
-                    </div>
-
-                    <div class="form-section-details">
-                        <div class="form-row">
-                            <div class="admin-form-group span-2">
-                                <label class="admin-form-label">Item Name *</label>
-                                <input type="text" class="admin-form-control" id="item-name" required placeholder="e.g. Cheese Burger">
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="admin-form-label">Price ($) *</label>
-                                <input type="number" class="admin-form-control" id="item-price" step="0.01" min="0" required placeholder="0.00">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="admin-form-group span-2">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <label class="admin-form-label" style="margin-bottom: 0;">Categories (Tap to select)</label>
-                                    <button type="button" class="btn-tiny-add" onclick="quickAddCategory()" title="Create New Category">
-                                        <span class="material-icons-round">add</span> New Category
-                                    </button>
-                                </div>
-                                
-                                <div id="category-chips-container" class="category-chips-wrapper">
-                                    <div class="chip-loading">Loading categories...</div>
-                                </div>
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="admin-form-label">Type / Tag</label>
-                                <input type="text" class="admin-form-control" id="item-type" placeholder="e.g. Hot, Cold, Spicy">
-                            </div>
-                        </div>
-
-                        <div class="form-row toggles-row">
-                            <label class="toggle-switch-container">
-                                <span class="toggle-label">Active Status</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="item-is-active" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                            
-                            <label class="toggle-switch-container">
-                                <span class="toggle-label">Run Promotion</span>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="item-is-promo">
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-
-                        <div id="promo-fields" class="promo-section hidden">
-                            <div class="form-row">
-                                <div class="admin-form-group">
-                                    <label class="admin-form-label">Promo Price ($)</label>
-                                    <input type="number" class="admin-form-control" id="item-promo-price" step="0.01">
-                                </div>
-                                <div class="admin-form-group">
-                                    <label class="admin-form-label">Badge Label</label>
-                                    <input type="text" class="admin-form-control" id="item-promo-badge" placeholder="e.g. SALE -50%">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
-            <div class="admin-modal-footer">
-                <button class="btn-admin btn-admin-secondary" onclick="hideModal('add-menu-item-modal')">Cancel</button>
-                <button class="btn-admin btn-admin-primary" onclick="saveMenuItem()">
-                    <span class="material-icons-round">save</span> Save Item
-                </button>
-            </div>
-        </div>
     </div>
 
     <div id="add-user-modal" class="admin-modal hidden">
         <div class="admin-modal-content">
             <div class="admin-modal-header">
-                <h3 class="admin-modal-title">Create New Login</h3>
+                <h3 class="admin-modal-title">Manage User</h3>
                 <button class="admin-modal-close" onclick="hideModal('add-user-modal')">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
             <div class="admin-modal-body">
                 <form id="add-user-form">
-                    <input type="hidden" id="edit-user-id"> <div class="input-group">
-                        <label>Full Name</label>
-                        <input type="text" id="user-fullname" name="fullName" class="input-field" placeholder="e.g. Sok Piseth" required>
+                    <input type="hidden" id="edit-user-id">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Full Name</label>
+                        <input type="text" id="user-fullname" class="admin-form-control" required>
                     </div>
-                    <div class="input-group">
-                        <label>Operator ID (Login Username)</label>
-                        <input type="text" id="user-username" name="username" class="input-field" placeholder="e.g. piseth01" required>
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Operator ID (Username)</label>
+                        <input type="text" id="user-username" class="admin-form-control" required>
                     </div>
-                    <div class="input-group">
-                        <label>Security PIN (4 Digits)</label>
-                        <input type="text" id="user-pin" name="password" class="input-field" maxlength="4" placeholder="e.g. 1234" required pattern="\d{4}">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Security PIN (4 Digits)</label>
+                        <input type="text" id="user-pin" class="admin-form-control" maxlength="4" pattern="\d{4}">
+                        <small style="color: #666; font-size: 12px;">Leave blank to keep current PIN when editing.</small>
                     </div>
-                    <div class="input-group">
-                        <label>Role</label>
-                        <select id="user-role" name="role" class="input-field">
+                    <div class="admin-form-group">
+                        <label class="admin-form-label">Role</label>
+                        <select id="user-role" class="admin-form-control">
                             <option value="cashier">Cashier</option>
-                            <option value="admin">Admin</option>
                             <option value="manager">Manager</option>
-                            <option value="staff">Staff</option>
+                            <option value="admin">Admin</option>
                         </select>
                     </div>
                 </form>
             </div>
             <div class="admin-modal-footer">
                 <button class="btn-admin btn-admin-secondary" onclick="hideModal('add-user-modal')">Cancel</button>
-                <button class="btn-admin btn-admin-primary" onclick="saveUser()">Save Account</button>
+                <button class="btn-admin btn-admin-primary" onclick="saveUser()">Save User</button>
             </div>
         </div>
     </div>
 
-    <div id="invoiceDetailModal" class="admin-modal hidden">
-        <div class="admin-modal-content modal-small">
-            <div class="modal-content receipt-modal" style="display: flex; flex-direction: column; height: 100%;">
-            </div>
-        </div>
-    </div>
-
-    <div id="confirm-modal" class="admin-modal hidden">
-        <div class="admin-modal-content">
-            <div class="admin-modal-header">
-                <h3 class="admin-modal-title" id="confirm-title">Confirm Action</h3>
-                <button class="admin-modal-close" onclick="hideModal('confirm-modal')">
+    <div id="add-menu-item-modal" class="admin-modal hidden">
+        <div class="admin-modal-content modal-large">
+             <div class="admin-modal-header">
+                <h3 class="admin-modal-title">Add Menu Item</h3>
+                <button class="admin-modal-close" onclick="hideModal('add-menu-item-modal')">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
             <div class="admin-modal-body">
-                <p id="confirm-message">Are you sure you want to perform this action?</p>
+                <form id="menu-item-form" class="item-form-grid">
+                    <input type="hidden" id="edit-menu-item-id">
+                    
+                    <div class="form-section-image">
+                        <div class="image-preview-box">
+                            <img id="image-preview-img" src="" class="hidden">
+                            <div id="image-preview-placeholder">Preview</div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Image URL</label>
+                            <input type="text" id="item-image" class="admin-form-control" oninput="updateImagePreview(this.value)">
+                        </div>
+                    </div>
+
+                    <div class="form-section-details">
+                         <div class="admin-form-group">
+                            <label class="admin-form-label">Name</label>
+                            <input type="text" id="item-name" class="admin-form-control" required>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Price ($)</label>
+                            <input type="number" id="item-price" class="admin-form-control" step="0.01" required>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Type</label>
+                            <input type="text" id="item-type" class="admin-form-control" placeholder="Hot, Cold, etc">
+                        </div>
+                         <div style="display:flex; gap:20px; margin-top:10px;">
+                            <label class="toggle-switch-container">
+                                Active <input type="checkbox" id="item-is-active" checked>
+                            </label>
+                            <label class="toggle-switch-container">
+                                Promo <input type="checkbox" id="item-is-promo">
+                            </label>
+                        </div>
+                        
+                        <div id="promo-fields" class="hidden" style="margin-top:10px;">
+                            <div class="admin-form-group">
+                                <label class="admin-form-label">Promo Price</label>
+                                <input type="number" id="item-promo-price" class="admin-form-control">
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-form-label">Badge</label>
+                                <input type="text" id="item-promo-badge" class="admin-form-control">
+                            </div>
+                        </div>
+
+                         <div class="admin-form-group" style="margin-top:15px;">
+                            <label class="admin-form-label">Categories (Select)</label>
+                            <div id="category-chips-container" class="category-chips-wrapper"></div>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="admin-modal-footer">
-                <button class="btn-admin btn-admin-secondary" onclick="hideModal('confirm-modal')">Cancel</button>
-                <button class="btn-admin btn-admin-primary" id="confirm-action-btn">Confirm</button>
+                <button class="btn-admin btn-admin-secondary" onclick="hideModal('add-menu-item-modal')">Cancel</button>
+                <button class="btn-admin btn-admin-primary" onclick="saveMenuItem()">Save Item</button>
             </div>
         </div>
+    </div>
+    
+    <div id="invoiceDetailModal" class="admin-modal hidden">
+        <div class="admin-modal-content modal-small">
+            </div>
     </div>
 
     <script src="admin.js"></script>
