@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    
     console.log('DOM loaded - starting POS system');
     
     // --- Real-time Date & Time Function ---
@@ -91,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- API Configuration ---
     const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
+    // const API_BASE_URL = 'http://localhost:3000/api';
 
     // API Functions - FIXED VERSION
     const api = {
@@ -2114,7 +2116,7 @@ async function showInvoiceDetailModal(invoice) {
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-                <button class="action-btn process" onclick="window.print()" style="padding: 10px 20px; width: 100%;">
+                <button class="action-btn process" onclick="printAndSendEOD()" style="padding: 10px 20px; width: 100%;">
                     <span class="material-icons-round">print</span> Print Receipt
                 </button>
             </div>
@@ -2287,9 +2289,11 @@ async function deleteInvoice(invoiceId) {
                             isSameItemId(m.id, item.id)
                         );
                         return {
+                            id: item.id,
                             name: item.name,
                             quantity: item.quantity,
                             price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            originalPrice: menuItem.originalPrice,
                             total: calculateOrderItemPrice(item)
                         };
                     }),
@@ -2298,7 +2302,8 @@ async function deleteInvoice(invoiceId) {
                     discount: globalDiscount,
                     total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
                     exchangeRate: KHR_RATE,
-                    status: 'paid'
+                    status: 'paid',
+                    createdBy: localStorage.getItem('username') || 'Staff' // <--- បន្ថែមបន្ទាត់នេះ
                 };
 
                 let newInvoice;
@@ -2349,9 +2354,11 @@ async function deleteInvoice(invoiceId) {
                             isSameItemId(m.id, item.id)
                         );
                         return {
+                            id: item.id,
                             name: item.name,
                             quantity: item.quantity,
                             price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            originalPrice: menuItem.originalPrice,
                             total: calculateOrderItemPrice(item)
                         };
                     }),
@@ -2360,7 +2367,8 @@ async function deleteInvoice(invoiceId) {
                     discount: globalDiscount,
                     total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
                     exchangeRate: KHR_RATE,
-                    status: 'pending' // Set status to pending for save button
+                    status: 'pending',
+                    createdBy: localStorage.getItem('username') || 'Staff' // <--- បន្ថែមបន្ទាត់នេះ
                 };
 
                 let newInvoice;
@@ -2440,9 +2448,11 @@ async function deleteInvoice(invoiceId) {
                             isSameItemId(m.id, item.id)
                         );
                         return {
+                            id: item.id,
                             name: item.name,
                             quantity: item.quantity,
                             price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            originalPrice: menuItem.originalPrice,
                             total: calculateOrderItemPrice(item)
                         };
                     }),
@@ -2451,7 +2461,8 @@ async function deleteInvoice(invoiceId) {
                     discount: globalDiscount,
                     total: totalDue,
                     exchangeRate: KHR_RATE,
-                    status: 'paid'
+                    status: 'paid',
+                    createdBy: localStorage.getItem('username') || 'Staff' // <--- បន្ថែមបន្ទាត់នេះ
                 };
 
                 let newInvoice;
@@ -2594,7 +2605,21 @@ async function deleteInvoice(invoiceId) {
 
     // Initialize the application
 // In pos.js, update the initializeApp function:
-
+function updatePOSBranding() {
+        const logoEl = document.getElementById('topHeaderLogo');
+        const nameEl = document.getElementById('topHeaderName');
+        
+        if (typeof systemSettings !== 'undefined') {
+            if (nameEl) nameEl.textContent = systemSettings.storeName || 'POS SYSTEM';
+            
+            if (logoEl && systemSettings.receiptLogo && systemSettings.receiptLogo.trim() !== '') {
+                logoEl.src = systemSettings.receiptLogo;
+                logoEl.style.display = 'block';
+            } else if (logoEl) {
+                logoEl.style.display = 'none';
+            }
+        }
+    }
 async function initializeApp() {
     try {
         console.log('🚀 POS: Starting initialization...');
@@ -2609,7 +2634,9 @@ async function initializeApp() {
                     KHR_RATE = Number(settings.exchangeRate);
                     console.log(`💱 Exchange Rate Loaded: 1 USD = ${KHR_RATE} KHR`);
                 }
+                updatePOSBranding(); // Update branding based on settings
             }
+            
         } catch (e) { console.warn('Could not load settings', e); }
         
         // 2. Load menu data
@@ -2733,14 +2760,13 @@ function downloadReceiptPDF(invoiceId) {
 }
 async function showEndOfDayReport() {
     try {
-        // 1. Fetch Invoices AND Menu Items (Source of Truth for Prices)
-        // We load menu items to get the REAL original price (e.g. $3.00)
+        // 1. Fetch Invoices AND Menu Items
         const [invoices, menuItems] = await Promise.all([
             api.getInvoices(),
             api.getMenuItems()
         ]);
 
-        // 2. Create Price Lookup Map
+        // 2. Create Price Lookup Map (Source of truth for Unit Prices)
         const priceMap = {};
         if (menuItems && Array.isArray(menuItems)) {
             menuItems.forEach(item => {
@@ -2748,27 +2774,40 @@ async function showEndOfDayReport() {
             });
         }
         
-        // 3. Filter for TODAY (Paid only)
-        const todayStr = new Date().toLocaleDateString('en-US');
-        const todaysInvoices = invoices.filter(inv => {
-            if (!inv.date) return false;
-            const invDate = new Date(inv.date).toLocaleDateString('en-US');
-            return invDate === todayStr && inv.status === 'paid';
-        });
-
-        // 4. Get Cashier Name
-        // Safe check for localStorage
         const currentCashier = (typeof localStorage !== 'undefined') 
             ? (localStorage.getItem('username') || 'Staff') 
             : 'Staff';
 
-        // 5. Basic Financials (Net Money Actually Collected)
-        const cashRevenue = todaysInvoices.filter(i => i.paymentMethod === 'cash').reduce((sum, i) => sum + (i.total || 0), 0);
-        const cardRevenue = todaysInvoices.filter(i => i.paymentMethod === 'card' || i.paymentMethod === 'aba').reduce((sum, i) => sum + (i.total || 0), 0);
-        const totalNetRevenue = cashRevenue + cardRevenue; 
+        // 4. Filter for Today, Paid Only, and Current Cashier
+        const todayStr = new Date().toLocaleDateString('en-US');
+        const todaysInvoices = invoices.filter(inv => {
+            if (!inv.date) return false;
+            const invDate = new Date(inv.date).toLocaleDateString('en-US');
+            
+            const isToday = (invDate === todayStr);
+            const isPaid = (inv.status === 'paid');
+            const isMyInvoice = (inv.createdBy === currentCashier || currentCashier === 'admin');
+
+            return isToday && isPaid && isMyInvoice;
+        });
+
+        // 5. Calculate Revenue (Including Delivery)
+        const cashRevenue = todaysInvoices.filter(i => (i.paymentMethod || 'cash').toLowerCase() === 'cash').reduce((sum, i) => sum + (i.total || 0), 0);
+        const cardRevenue = todaysInvoices.filter(i => {
+            const m = (i.paymentMethod || '').toLowerCase();
+            return m === 'card' || m === 'aba';
+        }).reduce((sum, i) => sum + (i.total || 0), 0);
+        
+        const deliveryRevenue = todaysInvoices.filter(i => {
+            const m = (i.paymentMethod || 'cash').toLowerCase();
+            return m !== 'cash' && m !== 'card' && m !== 'aba';
+        }).reduce((sum, i) => sum + (i.total || 0), 0);
+
+        // Real Total Net Revenue (Money actually collected)
+        const totalNetRevenue = cashRevenue + cardRevenue + deliveryRevenue; 
         const totalKHR = Math.round((totalNetRevenue * KHR_RATE) / 100) * 100;
 
-        // 6. Item Analysis (Calculate Gross vs Net)
+        // 6. 🚀 FIX: Normal Item Calculation (Strictly Price * Qty)
         const itemStats = {};
 
         todaysInvoices.forEach(inv => {
@@ -2777,66 +2816,51 @@ async function showEndOfDayReport() {
                     const name = item.name || 'Unknown';
                     const qty = item.quantity || 0;
                     
-                    // A. Actual Revenue (What customer paid, e.g. $2.50)
-                    const soldPrice = item.price || 0; 
-                    const itemNetRevenue = item.total || (soldPrice * qty);
-
-                    // B. Official Original Price (e.g. $3.00)
-                    // Look up from menu. If not found, fallback to sold price.
-                    let originalPrice = priceMap[name];
-                    if (originalPrice === undefined) {
-                        originalPrice = item.originalPrice || soldPrice;
-                    }
-                    
-                    // Logic check: Original price should never be lower than sold price
-                    if (soldPrice > originalPrice) {
-                        originalPrice = soldPrice;
-                    }
-                    
-                    const itemGrossRevenue = originalPrice * qty;
+                    // Get standard original unit price
+                    let unitPrice = priceMap[name] || item.originalPrice || item.price || 0;
 
                     if (!itemStats[name]) {
                         itemStats[name] = { 
                             qty: 0, 
-                            revenue: 0, // Net (Collected)
-                            gross: 0,   // Gross (Expected)
-                            unitPrice: originalPrice
+                            unitPrice: unitPrice 
                         };
                     }
 
+                    // Just add the quantities together
                     itemStats[name].qty += qty;
-                    itemStats[name].revenue += itemNetRevenue;
-                    itemStats[name].gross += itemGrossRevenue;
                 });
             }
         });
 
-        // 7. Calculate Grand Totals
-        let grandTotalGross = 0; // Subtotal (Before Disc)
+        // 7. 🚀 FIX: Calculate Grand Totals using Normal Math
+        let grandTotalGross = 0; // Subtotal
         
         const sortedItems = Object.entries(itemStats)
             .map(([name, data]) => {
-                grandTotalGross += data.gross;
+                // Normal Calculate: Price * Number of item
+                const rowTotal = data.unitPrice * data.qty;
+                grandTotalGross += rowTotal;
                 
                 return { 
                     name, 
                     qty: data.qty, 
-                    unitPrice: data.unitPrice, // ALWAYS shows Original Price ($3.00)
-                    revenue: data.revenue
+                    unitPrice: data.unitPrice, 
+                    rowTotal: rowTotal
                 };
             })
             .sort((a, b) => b.qty - a.qty);
 
-        // Discount = Gross ($3.00) - Net ($2.50)
-        const grandTotalDiscount = grandTotalGross - totalNetRevenue;
+        // Real Discount = (Perfect Math Subtotal) - (Actual Money Collected)
+        let grandTotalDiscount = grandTotalGross - totalNetRevenue;
+        if (grandTotalDiscount < 0) grandTotalDiscount = 0; // Prevent negative display
 
-        // 8. Generate Item Rows
+        // 8. Generate Perfect Math Item Rows
         const itemRowsHtml = sortedItems.map(item => `
             <tr>
                 <td style="text-align:left;">${item.name}</td>
                 <td style="text-align:right;">$${item.unitPrice.toFixed(2)}</td>
                 <td style="text-align:center;">${item.qty}</td>
-                <td style="text-align:right;">$${item.revenue.toFixed(2)}</td>
+                <td style="text-align:right;">$${item.rowTotal.toFixed(2)}</td>
             </tr>
         `).join('');
 
@@ -2856,6 +2880,7 @@ async function showEndOfDayReport() {
                     <div style="display: flex; justify-content: space-between;"><span>Orders:</span> <b>${todaysInvoices.length}</b></div>
                     <div style="display: flex; justify-content: space-between;"><span>Cash:</span> <span>$${cashRevenue.toFixed(2)}</span></div>
                     <div style="display: flex; justify-content: space-between;"><span>ABA / Card:</span> <span>$${cardRevenue.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Delivery:</span> <span>$${deliveryRevenue.toFixed(2)}</span></div>
                 </div>
 
                 <div style="font-weight: bold; text-align: center; margin-bottom: 5px; font-size: 11px;">ITEM SALES DETAILS</div>
@@ -2888,8 +2913,8 @@ async function showEndOfDayReport() {
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <button class="action-btn process" onclick="window.print()" style="padding: 10px 20px; width: 100%;">
-                    <span class="material-icons-round">print</span> Print Report
+                <button class="action-btn process" onclick="printAndSendEOD()" style="padding: 10px 20px; width: 100%;">
+                    <span class="material-icons-round">print</span> Print & Send Report
                 </button>
             </div>
         `;
@@ -2912,6 +2937,62 @@ async function showEndOfDayReport() {
         alert("Failed to generate report");
     }
 }
+// ================== PROFILE MODAL & LOGOUT ==================
+
+// ================== PROFILE MODAL & LOGOUT ==================
+
+function toggleProfileModal() {
+    const modal = document.getElementById('profileModal');
+    
+    const username = localStorage.getItem('username') || 'Staff';
+    const role = localStorage.getItem('userRole') || 'Cashier';
+    
+    document.getElementById('modalUsername').textContent = username;
+    document.getElementById('modalRole').textContent = role;
+    
+    // ប្រើ showModal ដើម្បីឱ្យប្រព័ន្ធបិទ Modal ផ្សេងៗទៀតដោយស្វ័យប្រវត្តិ
+    showModal(modal);
+}
+
+function closeProfileModal(event) {
+    if (event.target.id === 'profileModal') {
+        // ប្រើ hideModal វិញ
+        hideModal(document.getElementById('profileModal'));
+    }
+}
+
+function closeProfileModal(event) {
+    if (event.target.id === 'profileModal') {
+        document.getElementById('profileModal').classList.add('hidden');
+    }
+}
+
+async function posLogout() {
+    if (!confirm('Are you sure you want to sign out?')) return;
+    
+    const username = localStorage.getItem('username');
+    
+    if (username) {
+        try {
+            await fetch(`${API_BASE_URL}/users/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username })
+            });
+        } catch (e) {
+            console.error('Logout logging error:', e);
+        }
+    }
+
+    localStorage.removeItem('username');
+    localStorage.removeItem('userRole');
+    
+    window.location.href = 'POS_login.html';
+}
+
+window.toggleProfileModal = toggleProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.posLogout = posLogout;
 // ================== NOTIFICATION SYSTEM ==================
 function showNotification(type, message) {
     // 1. Remove existing notifications (Prevent stacking)
@@ -2952,16 +3033,24 @@ function showNotification(type, message) {
         }
     }, 3000);
 }
-// Mobile Cart Toggle Logic
+// ================== MOBILE CART TOGGLE LOGIC (FIXED) ==================
 const mobileCartBtn = document.getElementById('mobileCartBtn');
-const orderPanel = document.querySelector('.order-panel');
+const orderPanel = document.querySelector('.order-panel'); // កែមកប្រើ order-panel វិញ
+const orderHeader = document.querySelector('.order-panel h2'); // កែមកចាប់យកក្បាល H2 វិញ
 
-if (mobileCartBtn) {
+if (mobileCartBtn && orderPanel) {
+    // បើក Cart ពេលចុចលើរបារ Floating Bar ខាងក្រោម
     mobileCartBtn.addEventListener('click', () => {
-        orderPanel.classList.toggle('mobile-show');
-        // Update icon based on state
-        const icon = orderPanel.classList.contains('mobile-show') ? 'close' : 'shopping_cart';
-        mobileCartBtn.querySelector('.material-icons-round').textContent = icon;
+        orderPanel.classList.add('active');
+    });
+}
+
+if (orderHeader && orderPanel) {
+    // ចុចលើក្បាល Order Details ដើម្បីបិទវាចុះទៅក្រោមវិញ
+    orderHeader.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            orderPanel.classList.remove('active');
+        }
     });
 }
 
@@ -2975,9 +3064,6 @@ function updateMobileCartCount() {
         // mobileCartBtn.style.display = count > 0 ? 'flex' : 'none';
     }
 }
-
-// Call this inside your existing updateOrderDisplay() function
-// ... inside updateOrderDisplay() ...
 
 
 // Make it global so other scripts can use it
@@ -3012,5 +3098,112 @@ window.debugCategories = getAllCategories;
                 name: menuItem.querySelector('.item-name')?.textContent
             });
         }
+    });
+    // ================== REAL-TIME SOCKET.IO ==================
+    const socketBaseUrl = API_BASE_URL.replace('/api', '');
+    const socket = io(socketBaseUrl);
+
+    socket.on('connect', () => {
+        console.log('🟢 POS Connected to Real-Time Server');
+    });
+
+    socket.on('menu_updated', async () => {
+        console.log('🔄 Menu updated by Admin. Refreshing POS...');
+        menuData = await api.getMenuItems();
+        
+        const activeCategory = document.querySelector('.category-btn.active');
+        if (activeCategory) {
+            filterMenu(activeCategory.textContent.trim());
+        } else {
+            const activeItems = menuData.filter(item => item.isActive !== false);
+            generateMenuGrid(activeItems);
+        }
+    });
+
+    socket.on('invoice_updated', async () => {
+        if (!document.getElementById('invoicesPage').classList.contains('hidden')) {
+            console.log('🔄 Invoice updated. Refreshing list...');
+            await loadInvoices();
+        }
+    });
+    // Function to Print AND Send Telegram Report
+// Function to Print AND Send Telegram Report
+// Add or update this at the very bottom of pos.js
+window.printAndSendEOD = async function() {
+    // 1. Open the print dialog for the physical receipt
+    window.print();
+    
+    // 2. Get the currently logged-in username
+    const currentCashier = localStorage.getItem('username') || 'Staff';
+    
+    // 3. Send the request to the server with the username
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports/send-daily`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: currentCashier }) 
+        });
+        
+        if (response.ok) {
+            if (window.showNotification) {
+                window.showNotification('success', `Shift report for ${currentCashier} sent to Telegram!`);
+            }
+        }
+    } catch (error) {
+        console.error('❌ Telegram trigger error:', error);
+    }
+};
+// ================== MOBILE SIDEBAR (HAMBURGER MENU) ==================
+    // 1. បង្កើតប៊ូតុង Menu ដាក់លើក្បាល (Header) ដោយស្វ័យប្រវត្តិ
+    const headers = document.querySelectorAll('.header-left');
+    headers.forEach(header => {
+        if (!header.querySelector('.mobile-menu-toggle')) {
+            const menuBtn = document.createElement('button');
+            menuBtn.className = 'mobile-menu-toggle';
+            menuBtn.innerHTML = '<span class="material-icons-round" style="font-size: 28px;">menu</span>';
+            
+            // រៀបចំចំណងជើងឲ្យនៅមួយជួរជាមួយប៊ូតុង
+            const titleRow = document.createElement('div');
+            titleRow.style.display = 'flex';
+            titleRow.style.alignItems = 'center';
+            
+            const h2 = header.querySelector('h2');
+            header.insertBefore(titleRow, h2);
+            titleRow.appendChild(menuBtn);
+            titleRow.appendChild(h2);
+            
+            // 2. មុខងារចុចបើក Sidebar
+            menuBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelector('.sidebar').classList.add('mobile-open');
+                document.querySelector('.sidebar-overlay').classList.add('active');
+            });
+        }
+    });
+
+    // 3. បង្កើតផ្ទៃពណ៌ខ្មៅ (Overlay) សម្រាប់ចុចបិទ
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+
+        // ចុចលើផ្ទៃខ្មៅ ដើម្បីបិទ Sidebar វិញ
+        overlay.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('mobile-open');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // 4. បិទ Sidebar វិញដោយស្វ័យប្រវត្តិពេលចុចរើស Menu រួច (Invoice, Reports...)
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                document.querySelector('.sidebar').classList.remove('mobile-open');
+                if (overlay) overlay.classList.remove('active');
+            }
+        });
     });
 });

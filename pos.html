@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="pos.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     
 </head>
 <body>
@@ -16,7 +17,10 @@
     <span id="mobileCartCount" style="position:absolute; top:0; right:0; background:red; color:white; border-radius:50%; width:20px; height:20px; font-size:12px;">0</span>
 </button>
         <aside class="sidebar">
-            <div class="logo">LOGO</div>
+            <div class="logo">
+                <span class="material-icons-round" style="font-size: 32px;">coffee_maker</span>
+                
+            </div>
             <nav class="nav-links">
                 <button class="nav-btn active" title="Menu" data-page="menu">
                     <span class="material-icons-round">apps</span>
@@ -29,7 +33,7 @@
                 </button>
             </nav>
             
-            <div class="user-profile">
+            <div class="user-profile" onclick="toggleProfileModal()" title="View Profile">
                 <span class="material-icons-round">account_circle</span>
             </div>
         </aside>
@@ -37,13 +41,20 @@
         <!-- Menu Page with Order Panel -->
         <div class="main-content-wrapper" id="menuPage">
             <main class="main-content">
-                <header class="menu-header">
+                <header class="menu-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <div class="header-left">
                         <h2><span style="color: blueviolet;">MENU</span> List</h2>
                         <div class="datetime">
                             <span class="material-icons-round">today</span> Mon, 12.02.2026 - 
                             <span class="material-icons-round">schedule</span> 8:12 PM
                         </div>
+                    </div>
+
+                    <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+                        <div style="text-align: right;">
+                            <h1 id="topHeaderName" style="margin: 0; font-size: 36px; font-weight: 800; color: var(--text-dark); letter-spacing: 0.5px;">POS SYSTEM</h1>
+                        </div>
+                        <img id="topHeaderLogo" src="" style="height:100px; border-radius: 8px; display: none; object-fit: contain;">
                     </div>
                 </header>
 
@@ -277,8 +288,8 @@
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-print-invoice" id="printInvoiceDetailBtn">
-                    <span class="material-icons-round">print</span> Print Invoice
+               <button class="action-btn process" onclick="printAndSendEOD()" style="padding: 10px 20px; width: 100%;">
+                    <span class="material-icons-round">print</span> Print & Send to Telegram
                 </button>
             </div>
         </div>
@@ -474,7 +485,26 @@
             </div>
         </div>
     </div>
-    
+    <div id="profileModal" class="profile-modal-overlay hidden" onclick="closeProfileModal(event)">
+        <div class="profile-modal-content" onclick="event.stopPropagation()">
+            <div class="profile-modal-header">
+                <div class="profile-avatar">
+                    <span class="material-icons-round">person</span>
+                </div>
+                <div class="profile-info">
+                    <h3 id="modalUsername">Staff</h3>
+                    <p id="modalRole">Cashier</p>
+                </div>
+            </div>
+            <div class="profile-modal-divider"></div>
+            <div class="profile-modal-actions">
+                <button class="btn-logout-powerful" onclick="posLogout()">
+                    <span class="material-icons-round">logout</span>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 <script src="pos.js"></script>
 </html>

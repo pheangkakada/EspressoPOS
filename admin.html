@@ -7,9 +7,15 @@
     <link rel="stylesheet" href="pos.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="admin.css">
 </head>
 <body>
+    <div id="landscape-prompt">
+        <span class="material-icons-round rotate-icon">screen_rotation</span>
+        <h2>Please Rotate Your Device</h2>
+        <p>This dashboard is best viewed in landscape mode. Please turn your phone sideways to continue.</p>
+    </div>
     <button class="admin-mobile-toggle" onclick="toggleSidebar()">
         <span class="material-icons-round">menu</span>
     </button>
@@ -46,10 +52,6 @@
                 
                 <div class="admin-nav-section">
                     <div class="admin-nav-title">Orders & Sales</div>
-                    <div class="admin-nav-item" data-page="orders">
-                        <span class="admin-nav-icon material-icons-round">receipt_long</span>
-                        <span class="admin-nav-label">All Orders</span>
-                    </div>
                     <div class="admin-nav-item" data-page="invoices">
                         <span class="admin-nav-icon material-icons-round">description</span>
                         <span class="admin-nav-label">Invoices</span>

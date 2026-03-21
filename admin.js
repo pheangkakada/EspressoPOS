@@ -1,6 +1,6 @@
 // API Configuration
-// const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
+// const API_BASE_URL = 'http://localhost:3000/api';
 
 // Global State
 let currentPage = 'dashboard';
@@ -106,7 +106,6 @@ function getPageTitle(page) {
         'dashboard': 'Dashboard Overview',
         'menu-items': 'Menu Items Management',
         'categories': 'Categories Management',
-        'orders': 'All Orders',
         'invoices': 'Invoice Management',
         'sales': 'Sales Reports',
         'users': 'User Management',
@@ -986,11 +985,6 @@ function buildCategoryFilterButtons(allCategories, itemsByCategory, validCategor
     
     const statsHtml = `
         <div class="category-filter-stats" style="margin-left: auto; flex-shrink: 0; background: white; position: sticky; right: 0; box-shadow: -5px 0 10px -5px rgba(0,0,0,0.1); padding-left: 15px;">
-            <div class="category-filter-search">
-                <span class="material-icons-round">search</span>
-                <input type="text" placeholder="Filter categories..." oninput="filterCategories(this.value)" id="category-search">
-            </div>
-            <span id="category-stats" style="font-size: 0.8em; color: var(--text-muted); white-space: nowrap;">${allCategories.length} cats, ${totalItems} items</span>
         </div>
     `;
     
@@ -1573,6 +1567,8 @@ async function loadUsersPage() {
                             <th>Full Name</th>
                             <th>Operator ID</th>
                             <th>Role</th>
+                            <th>Last Login</th>   
+                            <th>Last Logout</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1582,6 +1578,10 @@ async function loadUsersPage() {
                                 <td><strong>${user.fullName || user.username}</strong></td>
                                 <td>${user.username}</td>
                                 <td><span class="admin-badge badge-success">${user.role.toUpperCase()}</span></td>
+                                
+                                <td style="font-size: 12px; color: #555;">${formatUserTime(user.lastLogin)}</td>
+                                <td style="font-size: 12px; color: #555;">${formatUserTime(user.lastLogout)}</td>
+                                
                                 <td>
                                     <button class="btn-admin btn-admin-secondary btn-small" onclick="editUser('${user._id}')" title="Edit Info">
                                         <span class="material-icons-round">edit</span>
@@ -1605,6 +1605,8 @@ async function loadSettingsPage() {
     try {
         const response = await fetch(`${API_BASE_URL}/settings`);
         const settings = await response.json();
+        const storeName = settings.storeName || "Paint Coffee";
+        const logoUrl = settings.receiptLogo || "";
 
         // 1. Parse existing data to fill our new separate fields
         // We assume the stored format was: "Name\nSubtitle\nContact"
@@ -1624,6 +1626,16 @@ async function loadSettingsPage() {
                 <div class="admin-form-section">
                     <div class="admin-form-title">General Configuration</div>
                     <div class="admin-form-row">
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Store Name</label>
+                            <input type="text" id="brand-store-name" class="admin-form-control" value="${storeName}">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-form-label">Store Logo URL</label>
+                            <input type="text" id="brand-store-logo" class="admin-form-control" value="${logoUrl}" placeholder="https://...">
+                        </div>
+                    </div>
+                    <div class="admin-form-row" style="margin-top: 15px;">
                         <div class="admin-form-group">
                             <label class="admin-form-label">Exchange Rate (1 USD = ? KHR)</label>
                             <input type="number" id="exchange-rate" class="admin-form-control" value="${settings.exchangeRate || 4000}">
@@ -1717,23 +1729,24 @@ async function saveVisualSettings() {
     // 1. Get Values
     const currency = document.getElementById('currency').value;
     const exchangeRate = parseFloat(document.getElementById('exchange-rate').value);
+    const storeName = document.getElementById('brand-store-name').value;
+    const receiptLogo = document.getElementById('brand-store-logo').value;
+    
     
     // 2. Combine Inputs into standard format for Server
     const name = document.getElementById('shop-name').value;
     const subtitle = document.getElementById('shop-subtitle').value;
     const contact = document.getElementById('shop-contact').value;
-    
-    // Combine Name + Subtitle + Contact into one "receiptHeader" string
-    // This keeps compatibility with your server
     const combinedHeader = `${name}\n${subtitle}\n${contact}`;
-    
     const receiptFooter = document.getElementById('shop-footer').value;
 
     const settingsData = {
         currency,
         exchangeRate,
         receiptHeader: combinedHeader,
-        receiptFooter: receiptFooter
+        receiptFooter: receiptFooter,
+        storeName: storeName,          
+        receiptLogo: receiptLogo       
     };
 
     try {
@@ -2499,11 +2512,39 @@ function resetSettings() {
     
     showNotification('success', 'Settings reset to default');
 }
-
-function logout() {
-    if (confirm('Are you sure you want to logout?')) {
-        window.location.href = 'pos.html';
+function formatUserTime(dateString) {
+    if (!dateString) return '<span style="color:#9e9e9e;">-</span>';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
+        month: 'short', day: 'numeric', 
+        hour: '2-digit', minute: '2-digit', hour12: true 
+    });
+}
+async function logout() {
+    if (!confirm('Are you sure you want to logout?')) return;
+    
+    const username = localStorage.getItem('username') || localStorage.getItem('adminUsername');
+    
+    // បាញ់ API ប្រាប់ Server ឱ្យកត់ត្រាម៉ោង Logout
+    if (username) {
+        try {
+            await fetch(`${API_BASE_URL}/users/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username })
+            });
+        } catch (error) {
+            console.error('Error recording logout time:', error);
+        }
     }
+
+    // លុបទិន្នន័យចេញពី LocalStorage
+    localStorage.removeItem('username');
+    localStorage.removeItem('adminUsername');
+    localStorage.removeItem('userRole');
+    
+    // លោតទៅកាន់ផ្ទាំង Login វិញ (ប្តូរទៅ POS_login.html បើបងប្រើផ្ទាំង Login ដាច់ដោយឡែក)
+    window.location.href = 'POS_login.html'; 
 }
 
 // ================== NOTIFICATION FUNCTION ==================
@@ -3052,170 +3093,146 @@ function printReceiptArea() {
 // ================== EXACT POS RECEIPT RENDERER ==================
 
 async function showInvoiceDetailModal(invoice) {
-    const modal = document.getElementById('invoiceDetailModal');
-    // We target the inner content div
-    const modalContent = modal.querySelector('.admin-modal-content');
+    const invoiceDetailModal = document.getElementById('invoiceDetailModal');
+    const modalContent = invoiceDetailModal.querySelector('.modal-content');
     
-    // 1. Reset Modal Classes to match POS styling
-    modalContent.className = 'admin-modal-content receipt-modal-container';
-    
-    // 2. Show Loading
+    // 1. Show Loading
+    modalContent.innerHTML = `<div style="padding:40px; text-align:center;">Loading Receipt Details...</div>`;
     showModal('invoiceDetailModal');
-    modalContent.innerHTML = `<div style="padding:40px; text-align:center; color:white;">Loading Receipt...</div>`;
 
     try {
-        // --- DATA PREPARATION ---
-        
-        // A. Create Price Map from loaded menu items (to show Regular vs Sold price)
-        const priceMap = {};
-        if (typeof allMenuItems !== 'undefined' && Array.isArray(allMenuItems)) {
-            allMenuItems.forEach(item => {
-                priceMap[item.name] = item.originalPrice; 
-            });
-        }
+        modalContent.className = 'modal-content receipt-modal';
 
-        // B. Get System Settings (Logo, Headers)
-        // Ensure systemSettings exists (admin.js normally loads this on init)
+        // 2. Header & Settings
         const settings = (typeof systemSettings !== 'undefined') ? systemSettings : {};
         const logoUrl = settings.receiptLogo || ""; 
         const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO";
         const headerLines = headerText.split('\n');
         const shopName = headerLines[0];
         const subHeader = headerLines.slice(1).join('<br>');
-        const footerText = (settings.receiptFooter || "Thank you!\nPlease come again.").replace(/\n/g, '<br>');
-        const exchangeRate = settings.exchangeRate || 4000;
+        const footerText = (settings.receiptFooter || "Thank you!").replace(/\n/g, '<br>');
 
-        // C. Format Dates & Time
+        const invoiceRate = invoice.exchangeRate || (typeof KHR_RATE !== 'undefined' ? KHR_RATE : 4000); 
+
+        // 3. Time & Duration
         const dateObj = new Date(invoice.date);
         const dateStr = dateObj.toLocaleDateString('en-GB').replace(/\//g, '-');
         const startTime = dateObj.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
-        
-        // Duration Logic (Mock if lastModifiedAt is missing)
         const endTimestamp = invoice.lastModifiedAt ? new Date(invoice.lastModifiedAt) : new Date();
         const endTime = endTimestamp.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
         const durationMin = Math.max(0, Math.floor((endTimestamp - dateObj) / 60000));
+        
+        // --- CASHIER NAME LOGIC (កែប្រែនៅទីនេះ) ---
+        // ទី1: យកឈ្មោះចេញពីវិក្កយបត្រផ្ទាល់
+        let cashierName = invoice.createdBy;
+        
+        // ទី2: បើវិក្កយបត្រចាស់ៗអត់មានឈ្មោះ វាគ្ចាញយកឈ្មោះគណនីដែលកំពុង Login មកបង្ហាញជំនួស (ឧ. Dara123)
+        if (!cashierName || cashierName === 'Staff' || cashierName === 'Admin') {
+             cashierName = localStorage.getItem('username') || localStorage.getItem('adminUsername') || 'Cashier';
+        }
 
-        // --- HTML GENERATION ---
-
-        // D. Build Items Rows
-        let totalGross = 0;
+        // 4. Build Items HTML 
         let itemsHtml = '';
+        
+        const totalGross = invoice.subtotal || invoice.total || 0;
+        const totalNet = invoice.total || 0;
+        const totalDiscount = invoice.discount || (totalGross > totalNet ? totalGross - totalNet : 0);
+        const totalKHR = Math.round((totalNet * invoiceRate) / 100) * 100;
 
         if (invoice.items) {
             invoice.items.forEach((item, index) => {
                 const name = item.name || 'Unknown';
                 const qty = item.quantity || 0;
-                const soldPrice = item.price || 0;
                 
-                // Logic: Find the highest known price to display as "Regular"
-                let originalPrice = priceMap[name]; 
-                if (originalPrice === undefined) originalPrice = item.originalPrice || soldPrice;
-                if (soldPrice > originalPrice) originalPrice = soldPrice;
-
+                const originalPrice = item.price || 0; 
                 const lineTotalGross = originalPrice * qty;
-                totalGross += lineTotalGross;
 
                 itemsHtml += `
                     <tr>
                         <td style="text-align: left;">
-                            <div style="font-weight: bold;">${index + 1}. ${name}</div>
+                            <div style="font-weight: bold;">${index + 1}.${name}</div>
                             <div style="font-size: 10px; color: #555;">Regular</div>
                         </td>
                         <td style="text-align: right;">$${originalPrice.toFixed(2)}</td>
                         <td style="text-align: center;">${qty}</td>
-                        <td style="text-align: right; font-weight: bold;">$${lineTotalGross.toFixed(2)}</td>
+                        <td style="text-align: right;">$${lineTotalGross.toFixed(2)}</td>
                     </tr>
                 `;
             });
         }
+        
+        const invoiceId = invoice.invoiceId || invoice._id?.substring(0,8) || "0000";
+        const waitingNum = invoiceId.slice(-4);
+        const paymentMethodText = invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod);
 
-        // E. Calculate Totals
-        const totalNet = invoice.total || 0;
-        const totalDiscount = totalGross - totalNet;
-        const totalKHR = Math.round((totalNet * exchangeRate) / 100) * 100;
-        const invoiceId = invoice.invoiceId || invoice._id.substring(0,6) || "0000";
-        const waitingNum = invoiceId.slice(-4); // Last 4 digits
-        const cashierName = invoice.createdBy || 'Staff';
-
-        // F. Final Template
+        // 5. Render HTML 
         modalContent.innerHTML = `
             <div class="receipt-actions">
-                <button class="receipt-close-btn" onclick="downloadReceiptPDF('${invoiceId}')" title="Download PDF" style="color: #d32f2f;">
-                    <span class="material-icons-round">picture_as_pdf</span>
-                </button>
-                <button class="receipt-close-btn" onclick="hideModal('invoiceDetailModal')" title="Close">
+                <button class="receipt-close" onclick="hideModal('invoiceDetailModal')">
                     <span class="material-icons-round">close</span>
+                </button>
+                <button class="receipt-close" style="color: #d32f2f;" onclick="downloadReceiptPDF('${invoiceId}')" title="Download PDF">
+                    <span class="material-icons-round">picture_as_pdf</span>
                 </button>
             </div>
 
             <div class="receipt-paper" id="receipt-to-print">
                 <div class="receipt-brand">
-                    ${logoUrl 
-                        ? `<img src="${logoUrl}" style="max-width: 60%; height: auto; margin:0 auto 5px auto; display:block;">` 
-                        : `<div class="receipt-logo-text">${shopName}</div>`
-                    }
+                    ${logoUrl ? `<img src="${logoUrl}" style="max-width: 80%; max-height: 80px; margin-bottom:5px; display:block; margin:auto;">` : `<div class="receipt-logo-text">${shopName}</div>`}
                     <div class="receipt-sub-header">${subHeader}</div>
                 </div>
 
-                <div style="font-size: 11px; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>INV: <b>${invoiceId}</b></span>
-                        <span>${dateStr}</span>
-                    </div>
+                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
+                    <div>INV: <b>${invoiceId}</b> | ${dateStr}</div>
                     <div>Cashier: ${cashierName}</div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-                        <span>Time: ${startTime} - ${endTime}</span>
-                        <span style="font-weight:bold;">${durationMin} mn</span>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5px;">
+                        <div>Start: ${startTime}<br>End: ${endTime}</div>
+                        <div style="text-align: right; font-weight: bold;">Duration: ${durationMin} mn</div>
                     </div>
                 </div>
 
                 <table class="receipt-table">
                     <thead>
-                        <tr>
-                            <th style="text-align: left; width: 45%;">ITEM</th>
-                            <th style="text-align: right; width: 20%;">PRICE</th>
-                            <th style="text-align: center; width: 10%;">QTY</th>
-                            <th style="text-align: right; width: 25%;">AMT</th>
+                        <tr style="background: #333; color: white;">
+                            <th style="text-align: left;">DESC</th>
+                            <th style="text-align: right;">PRICE</th>
+                            <th style="text-align: center;">QTY</th>
+                            <th style="text-align: right;">AMT</th>
                         </tr>
                     </thead>
                     <tbody>${itemsHtml}</tbody>
                 </table>
 
-                <div class="receipt-totals">
+                <div style="text-align: right; font-size: 12px; line-height: 1.6; margin-top: 10px;">
                     <div>Subtotal: $${totalGross.toFixed(2)}</div>
-                    ${totalDiscount > 0.01 ? `<div style="font-weight:bold;">Discount: -$${totalDiscount.toFixed(2)}</div>` : ''}
+                    ${totalDiscount > 0.01 ? `<div style="color: #d32f2f; font-weight: bold;">Discount: -$${totalDiscount.toFixed(2)}</div>` : ''}
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #000;">
-                        <span style="font-size: 14px; font-weight:bold;">TOTAL:</span>
-                        <span class="receipt-big-total">$${totalNet.toFixed(2)}</span>
+                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 5px; padding-top: 5px; border-top: 2px solid #000;">
+                        <span style="font-size: 14px; margin-right: 10px;">TOTAL $:</span>
+                        <span style="font-size: 20px; font-weight: 800;">$${totalNet.toFixed(2)}</span>
                     </div>
-                    <div style="font-weight: bold; font-size: 16px;">( ${totalKHR.toLocaleString()}៛ )</div>
+                    <div style="font-weight: bold; font-size: 14px;">Total ៛: ${totalKHR.toLocaleString()}៛</div>
                 </div>
 
-                <div style="text-align: center; margin-top: 15px;">
-                    <div style="border-top: 1px dashed #000; padding-top:10px; margin-bottom:10px;"></div>
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
-                        <span>Pay: ${invoice.paymentMethod === 'card' ? 'ABA/Card' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</span>
-                        <span>Table: ${invoice.table || 'N/A'}</span>
-                    </div>
-                    
-                    <div style="font-size: 26px; font-weight: 900; margin: 10px 0;">Waiting #${waitingNum}</div>
-                    
-                    <div class="receipt-footer-text">${footerText}</div>
-                    <div style="margin-top: 8px; font-weight: bold; font-size: 11px;">1 USD = ${exchangeRate.toLocaleString()} KHR</div>
+                <div style="margin-top: 15px;">
+                    <div style="font-weight: bold; text-transform: capitalize;">Pay by ${paymentMethodText}</div>
+                    <div style="font-weight: bold; font-size: 14px;">Table: ${invoice.table || 'N/A'}</div>
+                    <div style="font-size: 24px; font-weight: 800; margin: 5px 0;">Waiting #${waitingNum}</div>
+                    <div class="receipt-slogan">${footerText}</div>
+                    <div style="text-align: center; margin-top: 5px; font-weight: bold; font-size: 10px;">1$=${invoiceRate.toLocaleString()}R</div>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-                <button class="btn-admin btn-admin-primary" onclick="printReceiptArea()" style="width: 100%; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                <button class="action-btn process" onclick="printReceiptArea()" style="padding: 10px 20px; width: 100%; border-radius: 8px; font-weight: bold;">
                     <span class="material-icons-round">print</span> Print Receipt
                 </button>
             </div>
         `;
-
-    } catch (err) {
-        console.error("Receipt Render Error:", err);
-        modalContent.innerHTML = `<div style="padding:20px; color:white; text-align:center;">Error: ${err.message}</div>`;
+        
+    } catch (error) {
+        console.error("Receipt Error:", error);
+        modalContent.innerHTML = `<div style="color:red; padding:20px; text-align:center;">Error loading receipt</div>`;
     }
 }
 
@@ -3328,7 +3345,35 @@ async function deleteUser(id) {
 }
 
 
+// ================== REAL-TIME SOCKET.IO ==================
+    const socketBaseUrl = API_BASE_URL.replace('/api', '');
+    const socket = io(socketBaseUrl);
 
+    socket.on('connect', () => {
+        console.log('🟢 Admin Connected to Real-Time Server');
+    });
+
+    socket.on('invoice_updated', async () => {
+        console.log('🔄 New Sale detected! Refreshing Admin Dashboard...');
+        
+        if (currentPage === 'dashboard') {
+            loadDashboardData();
+        } 
+        else if (currentPage === 'invoices') {
+            const response = await fetch(`${API_BASE_URL}/invoices`);
+            allInvoices = await response.json();
+            document.querySelector('.admin-main-content').innerHTML = renderInvoicesPage();
+        }
+    });
+
+    // ពេលមានអ្នកកែប្រែ Menu វា Update ទិន្នន័យក្នុង Admin ដែរ
+    socket.on('menu_updated', async () => {
+        if (currentPage === 'menu') {
+            const response = await fetch(`${API_BASE_URL}/menu`);
+            allMenuItems = await response.json();
+            document.querySelector('.admin-main-content').innerHTML = renderMenuPage();
+        }
+    });
 // 4. Print Helper
 // Helper function to handle print
 function printReceiptArea() {
