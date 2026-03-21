@@ -560,7 +560,7 @@ function initCharts(salesObj, hoursArr, allData) {
     allData.forEach(i => {
         let key = 'Cash';
         if(i.paymentMethod === 'card') key = 'ABA/Card';
-        if(i.paymentMethod === 'delivery') key = 'Delivery';
+        else if(i.paymentMethod !== 'cash') key = 'Delivery'; // Groups FoodPanda, Grab, etc.
         payments[key] += i.total;
     });
 
@@ -3002,7 +3002,7 @@ async function viewInvoice(invoiceId) {
             </div>
 
             <div style="margin-top: 15px;">
-                <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA/Card' : (invoice.paymentMethod || 'Cash')}</div>
+                <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA/Card' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</div>
                 <div style="font-weight: bold; font-size: 14px;">Table: ${invoice.table || 'N/A'}</div>
                 <div style="font-size: 24px; font-weight: 800; margin: 5px 0; text-align:center;">Waiting #${waitingNum}</div>
                 <div class="receipt-slogan">${footerText}</div>
@@ -3194,7 +3194,7 @@ async function showInvoiceDetailModal(invoice) {
                 <div style="text-align: center; margin-top: 15px;">
                     <div style="border-top: 1px dashed #000; padding-top:10px; margin-bottom:10px;"></div>
                     <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
-                        <span>Pay: ${invoice.paymentMethod === 'card' ? 'ABA/Card' : (invoice.paymentMethod || 'Cash')}</span>
+                        <span>Pay: ${invoice.paymentMethod === 'card' ? 'ABA/Card' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</span>
                         <span>Table: ${invoice.table || 'N/A'}</span>
                     </div>
                     

@@ -2105,7 +2105,7 @@ async function showInvoiceDetailModal(invoice) {
                 </div>
 
                 <div style="margin-top: 15px;">
-                    <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA' : 'Cash'}</div>
+                    <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</div>
                     <div style="font-weight: bold; font-size: 14px;">Table: ${invoice.table || 'N/A'}</div>
                     <div style="font-size: 24px; font-weight: 800; margin: 5px 0;">Waiting #${waitingNum}</div>
                     <div class="receipt-slogan">${footerText}</div>
@@ -2295,7 +2295,7 @@ async function deleteInvoice(invoiceId) {
                             total: calculateOrderItemPrice(item)
                         };
                     }),
-                    paymentMethod: selectedPaymentMethod,
+                    paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : selectedPaymentMethod,
                     subtotal: parseFloat(subTotalDisplay.textContent.replace('$', '')) || 0,
                     discount: globalDiscount,
                     total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
@@ -2357,7 +2357,7 @@ async function deleteInvoice(invoiceId) {
                             total: calculateOrderItemPrice(item)
                         };
                     }),
-                    paymentMethod: selectedPaymentMethod !== 'none' ? selectedPaymentMethod : 'cash', // Default to cash if none selected
+                    paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : (selectedPaymentMethod !== 'none' ? selectedPaymentMethod : 'cash'),
                     subtotal: parseFloat(subTotalDisplay.textContent.replace('$', '')) || 0,
                     discount: globalDiscount,
                     total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
