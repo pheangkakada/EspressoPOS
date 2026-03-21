@@ -1336,6 +1336,47 @@ body.modal-open {
     color: #EF6C00;
     border: 1px solid #FFE0B2;
 }
+/* FoodPanda - Pink */
+.payment-FoodPanda {
+    background-color: #FCE4EC;
+    color: #D81B60;
+    border: 1px solid #F8BBD0;
+}
+
+/* GrabFood - Green */
+.payment-GrabFood {
+    background-color: #E8F5E8;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
+}
+
+/* Nham24 - Blue */
+.payment-Nham24 {
+    background-color: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #BBDEFB;
+}
+
+/* WOWNOW - Orange */
+.payment-WOWNOW {
+    background-color: #FFF3E0;
+    color: #EF6C00;
+    border: 1px solid #FFE0B2;
+}
+
+/* E-GetS - Yellow/Orange */
+.payment-E-GetS {
+    background-color: #FFF8E1;
+    color: #F57F17;
+    border: 1px solid #FFECB3;
+}
+
+/* Other Delivery - Purple */
+.payment-Other {
+    background-color: #F3E5F5;
+    color: #7B1FA2;
+    border: 1px solid #E1BEE7;
+}
 
 .invoice-actions {
     display: flex;
