@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - starting POS system');
     
+    
     // --- Real-time Date & Time Function ---
     function updateDateTime() {
         
