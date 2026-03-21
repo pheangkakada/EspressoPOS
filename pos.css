@@ -1311,50 +1311,41 @@ body.modal-open {
     border: 1px solid #FFE0B2;
 }
 
+/* Base style for all badges */
 .payment-method {
     padding: 4px 8px;
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-sm, 4px);
     font-size: 0.8em;
     font-weight: 600;
     display: inline-block;
 }
 
+/* Cash - Green */
 .payment-cash {
+    background-color: #E8F5E8;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
+}
+
+/* ABA / Card - Dark Blue */
+.payment-card, .payment-ABA {
+    background-color: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #BBDEFB;
+}
+
+/* Nham24 - Light Blue */
+.payment-Nham24 {
     background-color: #E3F2FD;
     color: #1976D2;
     border: 1px solid #BBDEFB;
 }
 
-.payment-card {
-    background-color: #E8F5E8;
-    color: #2E7D32;
-    border: 1px solid #C8E6C9;
-}
-
-.payment-delivery {
-    background-color: #FFF3E0;
-    color: #EF6C00;
-    border: 1px solid #FFE0B2;
-}
 /* FoodPanda - Pink */
 .payment-FoodPanda {
     background-color: #FCE4EC;
     color: #D81B60;
     border: 1px solid #F8BBD0;
-}
-
-/* GrabFood - Green */
-.payment-GrabFood {
-    background-color: #E8F5E8;
-    color: #2E7D32;
-    border: 1px solid #C8E6C9;
-}
-
-/* Nham24 - Blue */
-.payment-Nham24 {
-    background-color: #E3F2FD;
-    color: #1565C0;
-    border: 1px solid #BBDEFB;
 }
 
 /* WOWNOW - Orange */
@@ -1364,15 +1355,15 @@ body.modal-open {
     border: 1px solid #FFE0B2;
 }
 
-/* E-GetS - Yellow/Orange */
-.payment-E-GetS {
-    background-color: #FFF8E1;
-    color: #F57F17;
-    border: 1px solid #FFECB3;
+/* GrabFood - Green */
+.payment-GrabFood {
+    background-color: #E8F5E8;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
 }
 
-/* Other Delivery - Purple */
-.payment-Other {
+/* Default Delivery / Other - Purple */
+.payment-delivery, .payment-Other {
     background-color: #F3E5F5;
     color: #7B1FA2;
     border: 1px solid #E1BEE7;
