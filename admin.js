@@ -1,5 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
+// const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Global State
 let currentPage = 'dashboard';
