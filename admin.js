@@ -3329,17 +3329,40 @@ async function deleteUser(id) {
 
 
 // 4. Print Helper
+// Helper function to handle print
 function printReceiptArea() {
-    // Basic window print - browser usually handles current view or you can specifically target the div via CSS media queries if needed
-    // For admin panel, we might want to pop this into a new window to print cleanly
-    const content = document.getElementById('receipt-to-print').innerHTML;
-    const win = window.open('', '', 'height=700,width=400');
+    const content = document.getElementById('receipt-to-print').outerHTML;
+    const win = window.open('', '', 'height=700,width=450');
     win.document.write('<html><head><title>Print Receipt</title>');
+    
+    // Ensure the print window respects the dashed lines and monospace font
+    win.document.write(`
+        <style>
+            @media print {
+                @page { margin: 0; }
+                body { margin: 0; padding: 10px; }
+            }
+            body { 
+                font-family: 'Courier New', Courier, monospace; 
+                padding: 10px; 
+                margin: 0;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            /* Reset button styling that might bleed over */
+            button { display: none; }
+        </style>
+    `);
     win.document.write('</head><body>');
     win.document.write(content);
     win.document.write('</body></html>');
     win.document.close();
-    win.print();
+    win.focus();
+    setTimeout(() => {
+        win.print();
+        win.close();
+    }, 500);
 }
 
 // ================== MAKE FUNCTIONS GLOBAL ==================
