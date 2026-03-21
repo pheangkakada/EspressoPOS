@@ -1991,36 +1991,34 @@ async function showInvoiceDetailModal(invoice) {
         // 3. Header & Settings
         const settings = (typeof systemSettings !== 'undefined') ? systemSettings : {};
         const logoUrl = settings.receiptLogo || ""; 
-        const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO";
+        const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO\nSt 111, Phnom Penh, Cambodia\nTel: 069 642 429\nWiFi: Paint Coffee / Pass: 168168168";
         const headerLines = headerText.split('\n');
-        const shopName = headerLines[0];
-        const subHeader = headerLines.slice(1).join('<br>');
-        const footerText = (settings.receiptFooter || "Thank you!").replace(/\n/g, '<br>');
+        const shopName = headerLines[0] || "Paint Coffee";
+        const subHeader = headerLines[1] || "";
+        const contactInfo = headerLines.slice(2).join('<br>');
+        const footerText = (settings.receiptFooter || "Thank you for visiting!\nPlease come again.").replace(/\n/g, '<br>');
 
-        // --- CRITICAL CHANGE: DETERMINE EXCHANGE RATE ---
-        // If invoice has a saved rate, use it. Otherwise use current system rate.
+        // Exchange Rate
         const invoiceRate = invoice.exchangeRate || KHR_RATE; 
-        // ------------------------------------------------
 
-        // 4. Time & Duration
+        // 4. Time & Date Formatting (e.g., 14-Mar-2026)
         const dateObj = new Date(invoice.date);
-        const dateStr = dateObj.toLocaleDateString('en-GB').replace(/\//g, '-');
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const dateStr = `${dateObj.getDate().toString().padStart(2, '0')}-${months[dateObj.getMonth()]}-${dateObj.getFullYear()}`;
         const startTime = dateObj.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
-        const endTimestamp = invoice.lastModifiedAt ? new Date(invoice.lastModifiedAt) : new Date();
-        const endTime = endTimestamp.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
-        const durationMin = Math.max(0, Math.floor((endTimestamp - dateObj) / 60000));
         
+        // --- CASHIER NAME LOGIC ---
         let cashierName = invoice.createdBy || 'Staff';
         if (typeof localStorage !== 'undefined' && !invoice.createdBy) {
              cashierName = localStorage.getItem('username') || 'Staff';
         }
 
-        // 5. Build Items HTML
+        // 5. Build Items HTML (Matching exactly the monospace image layout)
         let totalGross = 0;
         let itemsHtml = '';
         
         if (invoice.items) {
-            invoice.items.forEach((item, index) => {
+            invoice.items.forEach((item) => {
                 const name = item.name || 'Unknown';
                 const qty = item.quantity || 0;
                 const soldPrice = item.price || 0;
@@ -2034,30 +2032,27 @@ async function showInvoiceDetailModal(invoice) {
 
                 itemsHtml += `
                     <tr>
-                        <td style="text-align: left;">
-                            <div style="font-weight: bold;">${index + 1}.${name}</div>
-                            <div style="font-size: 10px; color: #555;">Regular</div>
-                        </td>
-                        <td style="text-align: right;">$${originalPrice.toFixed(2)}</td>
-                        <td style="text-align: center;">${qty}</td>
-                        <td style="text-align: right;">$${lineTotalGross.toFixed(2)}</td>
+                        <td style="text-align: center; padding: 4px 0; vertical-align: top;">${qty}</td>
+                        <td style="text-align: left; padding: 4px 5px; vertical-align: top;">${name}</td>
+                        <td style="text-align: right; padding: 4px 0; vertical-align: top;">$ ${originalPrice.toFixed(2)}</td>
+                        <td style="text-align: right; padding: 4px 0; vertical-align: top;">$ ${lineTotalGross.toFixed(2)}</td>
                     </tr>
                 `;
             });
         }
 
-        // 6. Calculate Totals using HISTORICAL Rate
+        // 6. Calculate Totals
         const totalNet = invoice.total || 0;
         const totalDiscount = totalGross - totalNet;
-        // Use invoiceRate here instead of global KHR_RATE
         const totalKHR = Math.round((totalNet * invoiceRate) / 100) * 100;
+        const invoiceId = invoice.invoiceId || invoice._id?.substring(0,8) || "0000";
         
-        const invoiceId = invoice.invoiceId || "0000";
-        const waitingNum = invoiceId.slice(-4);
+        // Payment Method formatting (Allows Delivery App names to show correctly)
+        const paymentMethodText = invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod);
 
-        // 7. Render HTML
+        // 7. Render HTML (Styled exactly like the uploaded image)
         modalContent.innerHTML = `
-            <div class="receipt-actions">
+            <div class="receipt-actions" style="margin-bottom: 10px;">
                 <button class="receipt-close" onclick="hideModal(document.getElementById('invoiceDetailModal'))">
                     <span class="material-icons-round">close</span>
                 </button>
@@ -2066,50 +2061,66 @@ async function showInvoiceDetailModal(invoice) {
                 </button>
             </div>
 
-            <div class="receipt-paper" id="receipt-to-print">
-                <div class="receipt-brand">
-                    ${logoUrl ? `<img src="${logoUrl}" style="max-width: 80%; max-height: 80px; margin-bottom:5px; display:block; margin:auto;">` : `<div class="receipt-logo-text">${shopName}</div>`}
-                    <div class="receipt-sub-header">${subHeader}</div>
-                </div>
-
-                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
-                    <div>INV: <b>${invoiceId}</b> | ${dateStr}</div>
-                    <div>Cashier: ${cashierName}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5px;">
-                        <div>Start: ${startTime}<br>End: ${endTime}</div>
-                        <div style="text-align: right; font-weight: bold;">Duration: ${durationMin} mn</div>
+            <div class="receipt-paper" id="receipt-to-print" style="font-family: 'Courier New', Courier, monospace; color: #000; width: 100%; max-width: 320px; margin: 0 auto; padding: 15px; background: #fff; box-sizing: border-box;">
+                
+                <div style="text-align: center; margin-bottom: 10px;">
+                    ${logoUrl ? `<img src="${logoUrl}" style="max-width: 80px; margin-bottom: 5px; display: inline-block;">` : ''}
+                    <h2 style="margin: 0; font-size: 22px; font-weight: 800; font-family: sans-serif;">${shopName}</h2>
+                    <div style="font-size: 11px; letter-spacing: 1px; margin-top: 2px;">${subHeader}</div>
+                    <div style="margin-top: 6px; font-size: 11px; line-height: 1.4;">
+                        ${contactInfo}
                     </div>
                 </div>
 
-                <table class="receipt-table">
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+                <div style="font-size: 12px; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between;"><span>Receipt #:</span> <span>${invoiceId}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Cashier:</span> <span>${cashierName}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Date:</span> <span>${dateStr}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Time:</span> <span>${startTime}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Table:</span> <span>${invoice.table || 'Takeaway'}</span></div>
+                </div>
+
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
                     <thead>
-                        <tr style="background: #333; color: white;">
-                            <th style="text-align: left;">DESC</th>
-                            <th style="text-align: right;">PRICE</th>
-                            <th style="text-align: center;">QTY</th>
-                            <th style="text-align: right;">AMT</th>
+                        <tr style="border-bottom: 1px dashed #000;">
+                            <th style="text-align: center; width: 15%; padding-bottom: 5px; font-weight: normal;">QTY</th>
+                            <th style="text-align: left; width: 45%; padding-bottom: 5px; font-weight: normal; padding-left: 5px;">ITEM</th>
+                            <th style="text-align: right; width: 20%; padding-bottom: 5px; font-weight: normal;">PRICE</th>
+                            <th style="text-align: right; width: 20%; padding-bottom: 5px; font-weight: normal;">AMOUNT</th>
                         </tr>
                     </thead>
-                    <tbody>${itemsHtml}</tbody>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
                 </table>
 
-                <div style="text-align: right; font-size: 12px; line-height: 1.6; margin-top: 10px;">
-                    <div>Subtotal: $${totalGross.toFixed(2)}</div>
-                    ${totalDiscount > 0.01 ? `<div style="color: #d32f2f; font-weight: bold;">Discount: -$${totalDiscount.toFixed(2)}</div>` : ''}
-                    
-                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 5px; padding-top: 5px; border-top: 2px solid #000;">
-                        <span style="font-size: 14px; margin-right: 10px;">TOTAL $:</span>
-                        <span style="font-size: 20px; font-weight: 800;">$${totalNet.toFixed(2)}</span>
-                    </div>
-                    <div style="font-weight: bold; font-size: 14px;">Total ៛: ${totalKHR.toLocaleString()}៛</div>
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+                <div style="font-size: 12px; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between;"><span>Subtotal:</span> <span>$ ${totalGross.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>Discount:</span> <span>$ ${totalDiscount.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-top: 5px;"><span>Total (USD):</span> <span>$ ${totalNet.toFixed(2)}</span></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;"><span>Total (KHR):</span> <span>${totalKHR.toLocaleString()} ៛</span></div>
                 </div>
 
-                <div style="margin-top: 15px;">
-                    <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</div>
-                    <div style="font-weight: bold; font-size: 14px;">Table: ${invoice.table || 'N/A'}</div>
-                    <div style="font-size: 24px; font-weight: 800; margin: 5px 0;">Waiting #${waitingNum}</div>
-                    <div class="receipt-slogan">${footerText}</div>
-                    <div style="text-align: center; margin-top: 5px; font-weight: bold; font-size: 10px;">1$=${invoiceRate.toLocaleString()}R</div>
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+                <div style="font-size: 12px; line-height: 1.6;">
+                    <div style="display: flex; justify-content: space-between;"><span>Payment Method:</span> <span style="text-transform: capitalize;">${paymentMethodText}</span></div>
+                </div>
+
+                <div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+                <div style="text-align: center; font-size: 12px; line-height: 1.6; margin-bottom: 10px;">
+                    ${footerText}
+                </div>
+                
+                <div style="text-align: center; font-size: 10px;">
+                    1 USD = ${invoiceRate.toLocaleString()} KHR
                 </div>
             </div>
 
@@ -2120,8 +2131,6 @@ async function showInvoiceDetailModal(invoice) {
             </div>
         `;
         
-        showModal(invoiceDetailModal);
-
     } catch (error) {
         console.error("Receipt Error:", error);
         modalContent.innerHTML = `<div style="color:red; padding:20px; text-align:center;">Error loading receipt</div>`;
