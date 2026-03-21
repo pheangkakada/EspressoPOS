@@ -1,10 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - starting POS system');
-    const currentUser = localStorage.getItem('username') || 'Staff'; 
-    const profileText = document.getElementById('displayUsername');
-    if (profileText) {
-        profileText.textContent = currentUser;
-    }
     
     // --- Real-time Date & Time Function ---
     function updateDateTime() {
@@ -1866,76 +1861,71 @@ function filterMenu(category) {
         }
     }
 
- function generateInvoiceList(invoiceData = invoices) {
-    if (!invoiceListBody) return;
-    
-    invoiceListBody.innerHTML = '';
-    
-    if (!invoiceData || invoiceData.length === 0) {
-        if (noInvoicesMessage) noInvoicesMessage.style.display = 'block';
-        return;
-    }
-    
-    if (noInvoicesMessage) noInvoicesMessage.style.display = 'none';
-    
-    invoiceData.forEach(invoice => {
-        // Status formatting
-        const statusClass = `status-${invoice.status}`;
-        const statusText = invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Pending';
+    function generateInvoiceList(invoiceData = invoices) {
+        if (!invoiceListBody) return;
         
-        // Date formatting
-        const formattedDate = formatShortDate(invoice.date || new Date());
+        invoiceListBody.innerHTML = '';
         
-        // Payment Method formatting (Links directly to your CSS like .payment-FoodPanda)
-        let method = invoice.paymentMethod || 'cash';
-        let paymentMethodText = method;
-        let paymentMethodClass = `payment-${method}`;
-        
-        if (method.toLowerCase() === 'card' || method.toLowerCase() === 'aba') {
-            paymentMethodText = 'ABA';
-            paymentMethodClass = 'payment-card';
-        } else if (method.toLowerCase() === 'cash') {
-            paymentMethodText = 'Cash';
-            paymentMethodClass = 'payment-cash';
+        if (!invoiceData || invoiceData.length === 0) {
+            if (noInvoicesMessage) {
+                noInvoicesMessage.style.display = 'block';
+            }
+            return;
         }
-
-        // Generate Row HTML
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><strong>${invoice.invoiceId || invoice._id?.substring(0, 8) || 'N/A'}</strong></td>
-            <td><span style="color: #555; font-weight: 500;">${formattedDate}</span></td>
-            <td><span class="payment-method ${paymentMethodClass}">${paymentMethodText}</span></td>
-            <td><strong>$${(invoice.total || 0).toFixed(2)}</strong></td>
-            <td><span class="invoice-status ${statusClass}">${statusText}</span></td>
-            <td>
-                <div class="invoice-actions">
-                    <button class="btn-icon btn-view" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}" title="View">
-                        <span class="material-icons-round">visibility</span>
-                    </button>
-                    ${invoice.status === 'pending' ? `
-                        <button class="btn-icon btn-edit" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}" title="Edit">
-                            <span class="material-icons-round">edit</span>
-                        </button>
-                        <button class="btn-icon btn-delete" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}" title="Delete">
-                            <span class="material-icons-round">delete</span>
-                        </button>
-                    ` : `
-                        <button class="btn-icon disabled" disabled title="Locked">
-                            <span class="material-icons-round">lock</span>
-                        </button>
-                        <button class="btn-icon disabled" disabled title="Locked">
-                            <span class="material-icons-round">lock</span>
-                        </button>
-                    `}
-                </div>
-            </td>
-        `;
-        invoiceListBody.appendChild(row);
-    });
-    
-    // Attach event listeners to invoice action buttons
-    attachInvoiceActionHandlers();
-}
+        
+        if (noInvoicesMessage) {
+            noInvoicesMessage.style.display = 'none';
+        }
+        
+        invoiceData.forEach(invoice => {
+            const statusClass = `status-${invoice.status}`;
+            const statusText = invoice.status ? invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1) : 'Pending';
+            
+            // Use formatted date
+            const formattedDate = formatInvoiceDate(invoice.date || new Date());
+            
+            // Determine payment method display - hide for pending status
+            const paymentMethodClass = `payment-${invoice.paymentMethod}`;
+            const paymentMethodText = invoice.status === 'pending' ? 'Not Paid' : getPaymentMethodText(invoice.paymentMethod);
+            const paymentMethodDisplay = invoice.status === 'pending' ? 'payment-pending' : paymentMethodClass;
+            
+// Inside the invoice row generation
+const row = document.createElement('tr');
+row.innerHTML = `
+    <td><strong>${invoice.invoiceId || invoice._id?.substring(0, 8) || 'N/A'}</strong></td>
+    <td><span class="invoice-date">${formattedDate}</span></td>
+    <td><span class="payment-method ${paymentMethodDisplay}">${paymentMethodText}</span></td>
+    <td><span class="invoice-amount">$${(invoice.total || 0).toFixed(2)}</span></td>
+    <td><span class="invoice-status ${statusClass}">${statusText}</span></td>
+    <td>
+        <div class="invoice-actions">
+            <button class="btn-view" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}">
+                <span class="material-icons-round" style="font-size: 16px;">visibility</span> View
+            </button>
+            ${invoice.status === 'pending' ? `
+                <button class="btn-edit" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}">
+                    <span class="material-icons-round" style="font-size: 16px;">edit</span> Edit
+                </button>
+                <button class="btn-delete" data-invoice-id="${invoice.invoiceId || invoice._id || invoice.id}">
+                    <span class="material-icons-round" style="font-size: 16px;">delete</span> Delete
+                </button>
+            ` : `
+                <button class="btn-edit disabled" disabled title="Only admins can edit paid invoices">
+                    <span class="material-icons-round" style="font-size: 16px; opacity: 0.5;">lock</span> Edit
+                </button>
+                <button class="btn-delete disabled" disabled title="Only admins can delete paid invoices">
+                    <span class="material-icons-round" style="font-size: 16px; opacity: 0.5;">lock</span> Delete
+                </button>
+            `}
+        </div>
+    </td>
+`;
+            invoiceListBody.appendChild(row);
+        });
+        
+        // Attach event listeners to invoice action buttons
+        attachInvoiceActionHandlers();
+    }
     
     function getPaymentMethodText(method) {
         if (!method) return 'Not Set';
@@ -1985,12 +1975,12 @@ async function showInvoiceDetailModal(invoice) {
     const invoiceDetailModal = document.getElementById('invoiceDetailModal');
     const modalContent = invoiceDetailModal.querySelector('.modal-content');
     
-    // Show Loading
+    // 1. Show Loading
     modalContent.innerHTML = `<div style="padding:40px; text-align:center;">Loading Receipt Details...</div>`;
     showModal(invoiceDetailModal);
 
     try {
-        // Setup Data & Prices
+        // 2. Setup Data & Prices
         const priceMap = {};
         if (typeof menuData !== 'undefined' && Array.isArray(menuData)) {
             menuData.forEach(item => { priceMap[item.name] = item.originalPrice; });
@@ -1998,7 +1988,7 @@ async function showInvoiceDetailModal(invoice) {
 
         modalContent.className = 'modal-content receipt-modal';
 
-        // Header Settings
+        // 3. Header & Settings
         const settings = (typeof systemSettings !== 'undefined') ? systemSettings : {};
         const logoUrl = settings.receiptLogo || ""; 
         const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO\nSt 111, Phnom Penh, Cambodia\nTel: 069 642 429\nWiFi: Paint Coffee / Pass: 168168168";
@@ -2008,22 +1998,23 @@ async function showInvoiceDetailModal(invoice) {
         const contactInfo = headerLines.slice(2).join('<br>');
         const footerText = (settings.receiptFooter || "Thank you for visiting!\nPlease come again.").replace(/\n/g, '<br>');
 
-        const invoiceRate = invoice.exchangeRate || (typeof KHR_RATE !== 'undefined' ? KHR_RATE : 4000); 
+        const invoiceRate = invoice.exchangeRate || KHR_RATE; 
 
-        // Time & Date Formatting (e.g., 14-Mar-2026)
+        // 4. Time & Duration
         const dateObj = new Date(invoice.date);
+        
+        // Match the image date format: 12-Mar-2026
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const dateStr = `${dateObj.getDate().toString().padStart(2, '0')}-${months[dateObj.getMonth()]}-${dateObj.getFullYear()}`;
+        
         const startTime = dateObj.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
         
-        // --- CASHIER NAME LOGIC ---
-        // Look at the invoice first. If not there, look at who is logged in right now.
         let cashierName = invoice.createdBy || 'Staff';
         if (typeof localStorage !== 'undefined' && !invoice.createdBy) {
              cashierName = localStorage.getItem('username') || 'Staff';
         }
 
-        // Build Items HTML
+        // 5. Build Items HTML (Matching exactly the image layout)
         let totalGross = 0;
         let itemsHtml = '';
         
@@ -2051,16 +2042,17 @@ async function showInvoiceDetailModal(invoice) {
             });
         }
 
-        // Calculate Totals
+        // 6. Calculate Totals
         const totalNet = invoice.total || 0;
         const totalDiscount = totalGross - totalNet;
         const totalKHR = Math.round((totalNet * invoiceRate) / 100) * 100;
-        const invoiceId = invoice.invoiceId || invoice._id?.substring(0,8) || "0000";
+        
+        const invoiceId = invoice.invoiceId || "0000";
         
         // Payment Method formatting
         const paymentMethodText = invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod);
 
-        // Render HTML
+        // 7. Render HTML (Styled exactly like the uploaded image)
         modalContent.innerHTML = `
             <div class="receipt-actions" style="margin-bottom: 10px;">
                 <button class="receipt-close" onclick="hideModal(document.getElementById('invoiceDetailModal'))">
@@ -2300,18 +2292,27 @@ async function deleteInvoice(invoiceId) {
             // Continue with normal processing for other payment methods
             try {
                 // Prepare invoice data with status 'paid'
-const invoiceData = {
-            table: selectedTable !== '0' ? selectedTable : 'Takeaway',
-            items: currentOrder,
-            total: finalTotal,
-            subtotal: subtotal,
-            discount: currentDiscount,
-            // Uses the specific app (like FoodPanda) if delivery is selected
-            paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : selectedPaymentMethod,
-            status: 'paid',
-            // Saves the logged-in user
-            createdBy: localStorage.getItem('username') || 'Staff' 
-        };
+                const invoiceData = {
+                    table: currentTable || null,
+                    items: Object.values(order).map(item => {
+                        const menuItem = menuData.find(m => 
+                            isSameItemId(m._id, item.id) || 
+                            isSameItemId(m.id, item.id)
+                        );
+                        return {
+                            name: item.name,
+                            quantity: item.quantity,
+                            price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            total: calculateOrderItemPrice(item)
+                        };
+                    }),
+                    paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : selectedPaymentMethod,
+                    subtotal: parseFloat(subTotalDisplay.textContent.replace('$', '')) || 0,
+                    discount: globalDiscount,
+                    total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
+                    exchangeRate: KHR_RATE,
+                    status: 'paid'
+                };
 
                 let newInvoice;
                 if (currentEditingInvoiceId) {
@@ -2353,18 +2354,27 @@ const invoiceData = {
 
             try {
                 // Prepare invoice data with status 'pending'
-const invoiceData = {
-            table: selectedTable !== '0' ? selectedTable : 'Takeaway',
-            items: currentOrder,
-            total: finalTotal,
-            subtotal: subtotal,
-            discount: currentDiscount,
-            // Uses the specific app (like FoodPanda) if delivery is selected
-            paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : selectedPaymentMethod,
-            status: 'paid',
-            // Saves the logged-in user
-            createdBy: localStorage.getItem('username') || 'Staff' 
-        };
+                const invoiceData = {
+                    table: currentTable || null,
+                    items: Object.values(order).map(item => {
+                        const menuItem = menuData.find(m => 
+                            isSameItemId(m._id, item.id) || 
+                            isSameItemId(m.id, item.id)
+                        );
+                        return {
+                            name: item.name,
+                            quantity: item.quantity,
+                            price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            total: calculateOrderItemPrice(item)
+                        };
+                    }),
+                    paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : (selectedPaymentMethod !== 'none' ? selectedPaymentMethod : 'cash'),
+                    subtotal: parseFloat(subTotalDisplay.textContent.replace('$', '')) || 0,
+                    discount: globalDiscount,
+                    total: parseFloat(totalUSDDisplay.textContent.replace('$', '')) || 0,
+                    exchangeRate: KHR_RATE,
+                    status: 'pending' // Set status to pending for save button
+                };
 
                 let newInvoice;
                 if (currentEditingInvoiceId) {
@@ -2435,18 +2445,27 @@ const invoiceData = {
             // If sufficient payment, process the order
             try {
                 // Prepare invoice data with status 'paid'
-const invoiceData = {
-            table: selectedTable !== '0' ? selectedTable : 'Takeaway',
-            items: currentOrder,
-            total: finalTotal,
-            subtotal: subtotal,
-            discount: currentDiscount,
-            // Uses the specific app (like FoodPanda) if delivery is selected
-            paymentMethod: selectedPaymentMethod === 'delivery' ? selectedDeliveryApp : selectedPaymentMethod,
-            status: 'paid',
-            // Saves the logged-in user
-            createdBy: localStorage.getItem('username') || 'Staff' 
-        };
+                const invoiceData = {
+                    table: currentTable || null,
+                    items: Object.values(order).map(item => {
+                        const menuItem = menuData.find(m => 
+                            isSameItemId(m._id, item.id) || 
+                            isSameItemId(m.id, item.id)
+                        );
+                        return {
+                            name: item.name,
+                            quantity: item.quantity,
+                            price: item.isPromo ? (menuItem.promoPrice || menuItem.originalPrice) : menuItem.originalPrice,
+                            total: calculateOrderItemPrice(item)
+                        };
+                    }),
+                    paymentMethod: 'cash',
+                    subtotal: parseFloat(subTotalDisplay.textContent.replace('$', '')) || 0,
+                    discount: globalDiscount,
+                    total: totalDue,
+                    exchangeRate: KHR_RATE,
+                    status: 'paid'
+                };
 
                 let newInvoice;
                 if (currentEditingInvoiceId) {
