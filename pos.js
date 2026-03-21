@@ -1991,16 +1991,14 @@ async function showInvoiceDetailModal(invoice) {
         // 3. Header & Settings
         const settings = (typeof systemSettings !== 'undefined') ? systemSettings : {};
         const logoUrl = settings.receiptLogo || ""; 
-        const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO";
+        const headerText = settings.receiptHeader || "Paint Coffee\nART & BISTRO\nSt 111, Phnom Penh, Cambodia\nTel: 069 642 429\nWiFi: Paint Coffee / Pass: 168168168";
         const headerLines = headerText.split('\n');
-        const shopName = headerLines[0];
+        const shopName = headerLines[0] || "Paint Coffee";
         const subHeader = headerLines.slice(1).join('<br>');
-        const footerText = (settings.receiptFooter || "Thank you!").replace(/\n/g, '<br>');
+        const footerText = (settings.receiptFooter || "Thank you for visiting!\nPlease come again.").replace(/\n/g, '<br>');
 
-        // --- CRITICAL CHANGE: DETERMINE EXCHANGE RATE ---
-        // If invoice has a saved rate, use it. Otherwise use current system rate.
-        const invoiceRate = invoice.exchangeRate || KHR_RATE; 
-        // ------------------------------------------------
+        // Exchange Rate
+        const invoiceRate = invoice.exchangeRate || (typeof KHR_RATE !== 'undefined' ? KHR_RATE : 4000); 
 
         // 4. Time & Duration
         const dateObj = new Date(invoice.date);
@@ -2010,6 +2008,7 @@ async function showInvoiceDetailModal(invoice) {
         const endTime = endTimestamp.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' });
         const durationMin = Math.max(0, Math.floor((endTimestamp - dateObj) / 60000));
         
+        // --- CASHIER NAME LOGIC ---
         let cashierName = invoice.createdBy || 'Staff';
         if (typeof localStorage !== 'undefined' && !invoice.createdBy) {
              cashierName = localStorage.getItem('username') || 'Staff';
@@ -2034,30 +2033,32 @@ async function showInvoiceDetailModal(invoice) {
 
                 itemsHtml += `
                     <tr>
-                        <td style="text-align: left;">
-                            <div style="font-weight: bold;">${index + 1}.${name}</div>
-                            <div style="font-size: 10px; color: #555;">Regular</div>
+                        <td style="text-align: left; padding: 8px 5px; border-bottom: 1px solid #eee;">
+                            <div style="font-weight: bold; font-size: 13px;">${index + 1}. ${name}</div>
+                            <div style="font-size: 11px; color: #666; margin-top: 2px;">Regular</div>
                         </td>
-                        <td style="text-align: right;">$${originalPrice.toFixed(2)}</td>
-                        <td style="text-align: center;">${qty}</td>
-                        <td style="text-align: right;">$${lineTotalGross.toFixed(2)}</td>
+                        <td style="text-align: right; padding: 8px 5px; border-bottom: 1px solid #eee;">$${originalPrice.toFixed(2)}</td>
+                        <td style="text-align: center; padding: 8px 5px; border-bottom: 1px solid #eee;">${qty}</td>
+                        <td style="text-align: right; padding: 8px 5px; border-bottom: 1px solid #eee; font-weight: 600;">$${lineTotalGross.toFixed(2)}</td>
                     </tr>
                 `;
             });
         }
 
-        // 6. Calculate Totals using HISTORICAL Rate
+        // 6. Calculate Totals
         const totalNet = invoice.total || 0;
         const totalDiscount = totalGross - totalNet;
-        // Use invoiceRate here instead of global KHR_RATE
         const totalKHR = Math.round((totalNet * invoiceRate) / 100) * 100;
         
-        const invoiceId = invoice.invoiceId || "0000";
+        const invoiceId = invoice.invoiceId || invoice._id?.substring(0,8) || "0000";
         const waitingNum = invoiceId.slice(-4);
+        
+        // Payment Method formatting
+        const paymentMethodText = invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod);
 
         // 7. Render HTML
         modalContent.innerHTML = `
-            <div class="receipt-actions">
+            <div class="receipt-actions" style="margin-bottom: 10px;">
                 <button class="receipt-close" onclick="hideModal(document.getElementById('invoiceDetailModal'))">
                     <span class="material-icons-round">close</span>
                 </button>
@@ -2066,62 +2067,79 @@ async function showInvoiceDetailModal(invoice) {
                 </button>
             </div>
 
-            <div class="receipt-paper" id="receipt-to-print">
-                <div class="receipt-brand">
-                    ${logoUrl ? `<img src="${logoUrl}" style="max-width: 80%; max-height: 80px; margin-bottom:5px; display:block; margin:auto;">` : `<div class="receipt-logo-text">${shopName}</div>`}
-                    <div class="receipt-sub-header">${subHeader}</div>
+            <div class="receipt-paper" id="receipt-to-print" style="width: 100%; max-width: 350px; margin: 0 auto; padding: 20px; background: #fff; color: #000; font-family: 'Inter', sans-serif;">
+                
+                <div class="receipt-brand" style="text-align: center; margin-bottom: 15px;">
+                    ${logoUrl ? `<img src="${logoUrl}" style="max-width: 80%; max-height: 80px; margin-bottom:5px; display:block; margin:auto;">` : `<h2 style="margin: 0; font-size: 24px; font-weight: 800;">${shopName}</h2>`}
+                    <div class="receipt-sub-header" style="font-size: 12px; color: #555; margin-top: 5px; line-height: 1.4;">${subHeader}</div>
                 </div>
 
-                <div style="font-size: 11px; line-height: 1.4; margin-bottom: 10px;">
-                    <div>INV: <b>${invoiceId}</b> | ${dateStr}</div>
-                    <div>Cashier: ${cashierName}</div>
+                <div style="font-size: 12px; line-height: 1.5; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>INV: <b>${invoiceId}</b></span>
+                        <span>Date: ${dateStr}</span>
+                    </div>
+                    <div>Cashier: <b>${cashierName}</b></div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 5px;">
                         <div>Start: ${startTime}<br>End: ${endTime}</div>
-                        <div style="text-align: right; font-weight: bold;">Duration: ${durationMin} mn</div>
+                        <div style="text-align: right; font-weight: bold; background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">Duration: ${durationMin} mn</div>
                     </div>
                 </div>
 
-                <table class="receipt-table">
+                <table class="receipt-table" style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 15px;">
                     <thead>
                         <tr style="background: #333; color: white;">
-                            <th style="text-align: left;">DESC</th>
-                            <th style="text-align: right;">PRICE</th>
-                            <th style="text-align: center;">QTY</th>
-                            <th style="text-align: right;">AMT</th>
+                            <th style="text-align: left; padding: 8px 5px; font-weight: 600;">DESC</th>
+                            <th style="text-align: right; padding: 8px 5px; font-weight: 600;">PRICE</th>
+                            <th style="text-align: center; padding: 8px 5px; font-weight: 600;">QTY</th>
+                            <th style="text-align: right; padding: 8px 5px; font-weight: 600;">AMT</th>
                         </tr>
                     </thead>
                     <tbody>${itemsHtml}</tbody>
                 </table>
 
-                <div style="text-align: right; font-size: 12px; line-height: 1.6; margin-top: 10px;">
-                    <div>Subtotal: $${totalGross.toFixed(2)}</div>
-                    ${totalDiscount > 0.01 ? `<div style="color: #d32f2f; font-weight: bold;">Discount: -$${totalDiscount.toFixed(2)}</div>` : ''}
-                    
-                    <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 5px; padding-top: 5px; border-top: 2px solid #000;">
-                        <span style="font-size: 14px; margin-right: 10px;">TOTAL $:</span>
-                        <span style="font-size: 20px; font-weight: 800;">$${totalNet.toFixed(2)}</span>
+                <div style="text-align: right; font-size: 13px; line-height: 1.6; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Subtotal:</span>
+                        <span>$${totalGross.toFixed(2)}</span>
                     </div>
-                    <div style="font-weight: bold; font-size: 14px;">Total ៛: ${totalKHR.toLocaleString()}៛</div>
+                    ${totalDiscount > 0.01 ? `
+                    <div style="display: flex; justify-content: space-between; color: #d32f2f; font-weight: bold;">
+                        <span>Discount:</span>
+                        <span>-$${totalDiscount.toFixed(2)}</span>
+                    </div>` : ''}
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 2px solid #333;">
+                        <span style="font-size: 16px; font-weight: 800;">TOTAL $:</span>
+                        <span style="font-size: 22px; font-weight: 900; color: #000;">$${totalNet.toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-top: 5px; color: #444;">
+                        <span>Total ៛:</span>
+                        <span>${totalKHR.toLocaleString()}៛</span>
+                    </div>
                 </div>
 
-                <div style="margin-top: 15px;">
-                    <div style="font-weight: bold;">Pay by ${invoice.paymentMethod === 'card' ? 'ABA' : (invoice.paymentMethod === 'cash' ? 'Cash' : invoice.paymentMethod)}</div>
-                    <div style="font-weight: bold; font-size: 14px;">Table: ${invoice.table || 'N/A'}</div>
-                    <div style="font-size: 24px; font-weight: 800; margin: 5px 0;">Waiting #${waitingNum}</div>
-                    <div class="receipt-slogan">${footerText}</div>
-                    <div style="text-align: center; margin-top: 5px; font-weight: bold; font-size: 10px;">1$=${invoiceRate.toLocaleString()}R</div>
+                <div style="margin-top: 25px; text-align: center; border-top: 1px dashed #ccc; padding-top: 15px;">
+                    <div style="font-weight: bold; font-size: 16px; text-transform: capitalize;">Pay by ${paymentMethodText}</div>
+                    <div style="font-weight: bold; font-size: 16px; margin-top: 5px;">Table: <span style="background: #eee; padding: 2px 8px; border-radius: 4px;">${invoice.table || 'N/A'}</span></div>
+                    
+                    <div style="margin: 15px 0; padding: 10px; background: #f9f9f9; border: 2px solid #333; border-radius: 8px;">
+                        <div style="font-size: 12px; color: #555; text-transform: uppercase; font-weight: bold;">Waiting Number</div>
+                        <div style="font-size: 32px; font-weight: 900; letter-spacing: 2px; color: #000;">#${waitingNum}</div>
+                    </div>
+
+                    <div class="receipt-slogan" style="font-size: 13px; font-weight: 500; margin-bottom: 10px; line-height: 1.4;">${footerText}</div>
+                    <div style="text-align: center; margin-top: 5px; font-weight: bold; font-size: 11px; color: #666;">1$ = ${invoiceRate.toLocaleString()}R</div>
                 </div>
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
-                <button class="action-btn process" onclick="window.print()" style="padding: 10px 20px; width: 100%;">
+                <button class="action-btn process" onclick="window.print()" style="padding: 10px 20px; width: 100%; border-radius: 8px; font-weight: bold;">
                     <span class="material-icons-round">print</span> Print Receipt
                 </button>
             </div>
         `;
         
-        showModal(invoiceDetailModal);
-
     } catch (error) {
         console.error("Receipt Error:", error);
         modalContent.innerHTML = `<div style="color:red; padding:20px; text-align:center;">Error loading receipt</div>`;
