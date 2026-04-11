@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateDateTime, 1000);
     
     // --- API Configuration ---
-    const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
-    // const API_BASE_URL = 'http://localhost:3000/api';
+    // const API_BASE_URL = 'https://nodetest-backend-jwqo.onrender.com/api';
+    const API_BASE_URL = 'http://localhost:3000/api';
 
     // API Functions - FIXED VERSION
     const api = {
