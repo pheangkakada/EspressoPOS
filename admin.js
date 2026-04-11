@@ -1898,15 +1898,12 @@ async function saveMenuItem() {
     const badge = document.getElementById('item-promo-badge').value.trim();
     const image = document.getElementById('item-image').value.trim();
     
-    // 2. === NEW: Collect Categories from Chips ===
+    // 2. Collect Categories from Chips
     let categories = [];
     const selectedChips = document.querySelectorAll('.category-chip.selected');
     
     selectedChips.forEach(chip => {
-        // Find the text inside the span (ignoring the icon)
         const spans = chip.querySelectorAll('span');
-        // The text is usually in the second span, or simply textContent
-        // Let's iterate to find the text node or the non-icon span
         spans.forEach(span => {
             if (!span.classList.contains('material-icons-round')) {
                 categories.push(span.textContent.trim());
@@ -1925,7 +1922,6 @@ async function saveMenuItem() {
         return;
     }
 
-    // Validate Categories
     if (categories.length === 0) {
         showNotification('error', 'Please tap at least one category to select it');
         return;
@@ -1935,8 +1931,8 @@ async function saveMenuItem() {
     const menuItemData = {
         name,
         originalPrice: price,
-        categories: categories, // Send Array
-        category: categories[0], // Legacy support: set primary as first selected
+        categories: categories, 
+        category: categories[0], 
         type: type || null,
         isActive,
         isPromo,
@@ -1949,16 +1945,14 @@ async function saveMenuItem() {
         let response;
         let endpoint = `${API_BASE_URL}/admin/menu`;
         
-        // 5. Send Request (PUT if editing, POST if new)
+        // 5. Send Request
         if (currentEditingId) {
-            // Update existing item
             response = await fetch(`${endpoint}/${currentEditingId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(menuItemData)
             });
         } else {
-            // Add new item
             response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1971,13 +1965,13 @@ async function saveMenuItem() {
             showNotification('success', `Menu item ${currentEditingId ? 'updated' : 'added'} successfully!`);
             hideModal('add-menu-item-modal');
             
-            // Refresh logic
-            if (typeof loadMenuItemsPage === 'function' && currentPage === 'menu-items') {
-                loadMenuItemsPage();
-            } else if (typeof loadDashboardData === 'function') {
+            // --- THE FIX IS HERE ---
+            // Use loadPageContent to actually redraw the screen
+            if (currentPage === 'menu-items') {
+                loadPageContent('menu-items'); 
+            } else if (currentPage === 'dashboard') {
                 loadDashboardData();
             } else {
-                // Fallback reload
                 window.location.reload();
             }
         } else {
@@ -1989,7 +1983,6 @@ async function saveMenuItem() {
         showNotification('error', 'Failed to save menu item. Please try again.');
     }
 }
-
 async function deleteMenuItem(itemId) {
     if (!confirm('Are you sure you want to delete this menu item?')) return;
     
@@ -3346,34 +3339,38 @@ async function deleteUser(id) {
 
 
 // ================== REAL-TIME SOCKET.IO ==================
-    const socketBaseUrl = API_BASE_URL.replace('/api', '');
-    const socket = io(socketBaseUrl);
+ // ================== REAL-TIME SOCKET.IO (ADMIN) ==================
+const socketBaseUrl = API_BASE_URL.replace('/api', '');
+const socket = io(socketBaseUrl);
 
-    socket.on('connect', () => {
-        console.log('🟢 Admin Connected to Real-Time Server');
-    });
+socket.on('connect', () => {
+    console.log('🟢 Admin Connected to Real-Time Server');
+});
 
-    socket.on('invoice_updated', async () => {
-        console.log('🔄 New Sale detected! Refreshing Admin Dashboard...');
-        
-        if (currentPage === 'dashboard') {
-            loadDashboardData();
-        } 
-        else if (currentPage === 'invoices') {
-            const response = await fetch(`${API_BASE_URL}/invoices`);
-            allInvoices = await response.json();
-            document.querySelector('.admin-main-content').innerHTML = renderInvoicesPage();
-        }
-    });
+socket.on('invoice_updated', async () => {
+    console.log('🔄 New Sale detected! Refreshing Admin Dashboard...');
+    
+    if (currentPage === 'dashboard') {
+        loadDashboardData();
+    } 
+    else if (currentPage === 'invoices') {
+        loadPageContent('invoices'); // Corrected function call
+    }
+});
 
-    // ពេលមានអ្នកកែប្រែ Menu វា Update ទិន្នន័យក្នុង Admin ដែរ
-    socket.on('menu_updated', async () => {
-        if (currentPage === 'menu') {
-            const response = await fetch(`${API_BASE_URL}/menu`);
-            allMenuItems = await response.json();
-            document.querySelector('.admin-main-content').innerHTML = renderMenuPage();
-        }
-    });
+socket.on('menu_updated', async () => {
+    console.log('🔄 Menu changed. Syncing Admin panel...');
+    
+    // Check if the admin is currently looking at the menu items page
+    if (currentPage === 'menu-items') {
+        // Just reload the page content seamlessly
+        loadPageContent('menu-items'); 
+        showNotification('info', 'Menu list auto-updated');
+    } else if (currentPage === 'dashboard') {
+        // Update the dashboard stats if they are on the home page
+        loadDashboardData();
+    }
+});
 // 4. Print Helper
 // Helper function to handle print
 function printReceiptArea() {

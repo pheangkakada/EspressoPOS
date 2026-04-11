@@ -3100,6 +3100,7 @@ window.debugCategories = getAllCategories;
         }
     });
     // ================== REAL-TIME SOCKET.IO ==================
+    // ================== REAL-TIME SOCKET.IO (POS) ==================
     const socketBaseUrl = API_BASE_URL.replace('/api', '');
     const socket = io(socketBaseUrl);
 
@@ -3109,14 +3110,24 @@ window.debugCategories = getAllCategories;
 
     socket.on('menu_updated', async () => {
         console.log('🔄 Menu updated by Admin. Refreshing POS...');
+        
+        // 1. Get the newly updated menu items from the database
         menuData = await api.getMenuItems();
         
-        const activeCategory = document.querySelector('.category-btn.active');
-        if (activeCategory) {
-            filterMenu(activeCategory.textContent.trim());
-        } else {
-            const activeItems = menuData.filter(item => item.isActive !== false);
-            generateMenuGrid(activeItems);
+        // 2. Re-generate categories (in case the new drink has a brand new category)
+        await generateCategoryButtons();
+        setupCategoryHandlers();
+        
+        // 3. Keep the user on the category they were currently looking at
+        const activeCategoryBtn = document.querySelector('.category-btn.active');
+        const currentCategory = activeCategoryBtn ? activeCategoryBtn.textContent.trim() : 'All';
+        
+        // 4. Redraw the grid
+        filterMenu(currentCategory);
+        
+        // 5. Notify the cashier
+        if (typeof showNotification === 'function') {
+            showNotification('info', 'Menu synced with server');
         }
     });
 
@@ -3126,9 +3137,7 @@ window.debugCategories = getAllCategories;
             await loadInvoices();
         }
     });
-    // Function to Print AND Send Telegram Report
-// Function to Print AND Send Telegram Report
-// Add or update this at the very bottom of pos.js
+    
 window.printAndSendEOD = async function() {
     // 1. Open the print dialog for the physical receipt
     window.print();
