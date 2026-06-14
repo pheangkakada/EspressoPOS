@@ -1,31 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EspressoPOS | Pro Terminal</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             /* Pro Light Theme */
-            --bg-base: #f1f5f9;       /* Light cool gray background */
-            --bg-surface: #ffffff;    /* Pure white card */
-            --bg-input: #f8fafc;      /* Very light input field */
-            --accent: #7C4DFF;        /* Original Purple */
+            --bg-base: #f1f5f9;
+            /* Light cool gray background */
+            --bg-surface: #ffffff;
+            /* Pure white card */
+            --bg-input: #f8fafc;
+            /* Very light input field */
+            --accent: #7C4DFF;
+            /* Original Purple */
             --accent-hover: #6A42D0;
-            --text-main: #0f172a;     /* Very dark slate text */
-            --text-muted: #64748b;    /* Muted text */
-            --border: #e2e8f0;        /* Light border */
+            --text-main: #0f172a;
+            /* Very dark slate text */
+            --text-muted: #64748b;
+            /* Muted text */
+            --border: #e2e8f0;
+            /* Light border */
             --danger: #ef4444;
             --success: #10b981;
-            
+
             --font-main: 'Inter', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
-            --radius: 8px; /* Sharper corners for a "pro" look */
+            --radius: 8px;
+            /* Sharper corners for a "pro" look */
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
             font-family: var(--font-main);
@@ -46,7 +63,8 @@
             min-height: 600px;
             background: var(--bg-surface);
             border-radius: var(--radius);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1); /* Softer shadow for light mode */
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+            /* Softer shadow for light mode */
             border: 1px solid var(--border);
             overflow: hidden;
         }
@@ -65,7 +83,11 @@
 
         .system-panel::before {
             content: '';
-            position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
             background: var(--accent);
         }
 
@@ -96,9 +118,10 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .status-dot {
-            width: 8px; height: 8px;
+            width: 8px;
+            height: 8px;
             background: var(--success);
             border-radius: 50%;
             box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
@@ -113,9 +136,20 @@
             justify-content: center;
         }
 
-        .form-header { margin-bottom: 40px; }
-        .form-header h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 4px; }
-        .form-header p { color: var(--text-muted); font-size: 0.9rem; }
+        .form-header {
+            margin-bottom: 40px;
+        }
+
+        .form-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
         /* --- Staff Picker --- */
         .staff-scroll {
@@ -126,7 +160,10 @@
             margin-bottom: 25px;
             scrollbar-width: none;
         }
-        .staff-scroll::-webkit-scrollbar { display: none; }
+
+        .staff-scroll::-webkit-scrollbar {
+            display: none;
+        }
 
         .staff-avatar {
             width: 56px;
@@ -146,11 +183,16 @@
             text-transform: uppercase;
         }
 
-        .staff-avatar:hover { border-color: var(--accent); color: var(--accent); background: var(--bg-input); }
-        .staff-avatar.active { 
-            background: rgba(124, 77, 255, 0.1); 
-            border-color: var(--accent); 
-            color: var(--accent); 
+        .staff-avatar:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--bg-input);
+        }
+
+        .staff-avatar.active {
+            background: rgba(124, 77, 255, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         /* --- Selected User Pill --- */
@@ -164,28 +206,58 @@
             align-items: center;
             justify-content: space-between;
         }
-        .user-badge.visible { display: flex; }
 
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-icon { color: var(--accent); display: flex; align-items: center; }
-        
+        .user-badge.visible {
+            display: flex;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-icon {
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+        }
+
         .change-btn {
-            background: transparent; border: 1px solid var(--border); 
-            color: var(--text-main); font-size: 0.75rem; font-weight: 600; 
-            padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: 0.2s;
         }
-        .change-btn:hover { background: var(--bg-input); }
+
+        .change-btn:hover {
+            background: var(--bg-input);
+        }
 
         /* --- Inputs --- */
-        .input-group { margin-bottom: 24px; }
-        .input-group.hide { display: none; }
-        
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group.hide {
+            display: none;
+        }
+
         .input-label {
-            display: block; font-size: 0.75rem; font-weight: 600; 
-            color: var(--text-muted); margin-bottom: 8px;
-            text-transform: uppercase; letter-spacing: 1px;
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .form-input {
@@ -197,7 +269,8 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             transition: all 0.2s;
-            font-family: var(--font-mono); /* Technical feel for inputs */
+            font-family: var(--font-mono);
+            /* Technical feel for inputs */
         }
 
         .form-input:focus {
@@ -205,14 +278,17 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
         }
-        .form-input::placeholder { color: #94a3b8; }
+
+        .form-input::placeholder {
+            color: #94a3b8;
+        }
 
         /* --- Buttons --- */
         .btn-submit {
             width: 100%;
             padding: 18px;
             background: var(--accent);
-            color: #ffffff; 
+            color: #ffffff;
             border: none;
             border-radius: var(--radius);
             font-size: 1rem;
@@ -223,65 +299,154 @@
             transition: all 0.2s;
             margin-top: 10px;
         }
-        .btn-submit:hover { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3); }
-        .btn-submit:active { transform: scale(0.98); }
-        .btn-submit:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
 
         .sys-logs-btn {
-            background: none; border: none; 
-            color: var(--text-muted); font-size: 0.8rem; 
-            margin-top: 30px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            width: 100%; font-family: var(--font-mono);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            font-family: var(--font-mono);
             transition: color 0.2s;
         }
-        .sys-logs-btn:hover { color: var(--text-main); }
+
+        .sys-logs-btn:hover {
+            color: var(--text-main);
+        }
 
         /* --- Notify & Modal (Light theme) --- */
         .notify {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: var(--danger); color: white; padding: 12px 24px; border-radius: var(--radius);
-            font-weight: 600; opacity: 0; visibility: hidden; transition: 0.3s;
-            z-index: 1000; font-family: var(--font-mono); font-size: 0.9rem;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--danger);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 1000;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
-        .notify.active { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-        .notify.success { background: var(--success); color: #ffffff; }
+
+        .notify.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .notify.success {
+            background: var(--success);
+            color: #ffffff;
+        }
 
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
-            z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        .modal-card { 
-            width: 100%; max-width: 500px; 
-            background: var(--bg-surface); 
+
+        .modal-card {
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius); 
-            padding: 30px; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
         }
-        .log-row { 
-            display: flex; justify-content: space-between; padding: 16px 0; 
-            border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.85rem;
+
+        .log-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
         }
-        .log-row:last-child { border-bottom: none; }
+
+        .log-row:last-child {
+            border-bottom: none;
+        }
 
         /* --- Responsive --- */
         @media (max-width: 900px) {
-            .system-panel { display: none; }
-            .auth-container { max-width: 500px; min-height: auto; }
-            .form-panel { padding: 40px; }
+            .system-panel {
+                display: none;
+            }
+
+            .auth-container {
+                max-width: 500px;
+                min-height: auto;
+            }
+
+            .form-panel {
+                padding: 40px;
+            }
         }
 
         @media (max-width: 480px) {
-            body { padding: 10px; background: var(--bg-surface); }
-            .auth-container { border: none; border-radius: 0; box-shadow: none; background: transparent;}
-            .form-panel { padding: 20px 10px; }
-            .form-input { padding: 14px; }
-            .staff-avatar { width: 50px; height: 50px; }
+            body {
+                padding: 10px;
+                background: var(--bg-surface);
+            }
+
+            .auth-container {
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                background: transparent;
+            }
+
+            .form-panel {
+                padding: 20px 10px;
+            }
+
+            .form-input {
+                padding: 14px;
+            }
+
+            .staff-avatar {
+                width: 50px;
+                height: 50px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div id="notify" class="notify">SYSTEM_MSG</div>
@@ -293,7 +458,7 @@
                 <h1 class="brand-title">Espresso<br>POS</h1>
                 <div class="brand-subtitle">POS CORE V.2.4</div>
             </div>
-            
+
             <div class="system-status">
                 <div class="status-dot"></div>
                 SERVER ONLINE • SECURE CONNECTION
@@ -308,7 +473,8 @@
             </header>
 
             <div id="staffList" class="staff-scroll">
-                <div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">[ FETCHING_USERS... ]</div>
+                <div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono);">[
+                    FETCHING_USERS... ]</div>
             </div>
 
             <form id="loginForm">
@@ -319,8 +485,11 @@
                             <span class="material-icons-round" style="font-size: 28px;">admin_panel_settings</span>
                         </div>
                         <div>
-                            <div id="badgeName" style="font-weight: 700; font-size: 1rem; text-transform: uppercase;">ADMIN</div>
-                            <div id="badgeRole" style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">LEVEL 1</div>
+                            <div id="badgeName" style="font-weight: 700; font-size: 1rem; text-transform: uppercase;">
+                                ADMIN</div>
+                            <div id="badgeRole"
+                                style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); text-transform: uppercase;">
+                                LEVEL 1</div>
                         </div>
                     </div>
                     <button type="button" class="change-btn" onclick="resetForm()">Switch</button>
@@ -350,24 +519,29 @@
     <!-- System Logs Modal -->
     <div id="historyOverlay" class="modal-overlay" onclick="toggleHistory(false)">
         <div class="modal-card" onclick="event.stopPropagation()">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
-                <h3 style="font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; font-family: var(--font-mono);">> SYSTEM_ACTIVITY_LOG</h3>
-                <button onclick="toggleHistory(false)" style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <h3
+                    style="font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; font-family: var(--font-mono);">
+                    > SYSTEM_ACTIVITY_LOG</h3>
+                <button onclick="toggleHistory(false)"
+                    style="background: none; border: none; cursor: pointer; color: var(--text-muted);">
                     <span class="material-icons-round">close</span>
                 </button>
             </div>
             <div id="logContainer">
-                <div style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem;">Initializing log stream...</div>
+                <div style="color: var(--text-muted); font-family: var(--font-mono); font-size: 0.85rem;">Initializing
+                    log stream...</div>
             </div>
         </div>
     </div>
 
     <script>
         // --- LOGIC (REMAINING THE SAME) ---
-        // const API_BASE = 'https://nodetest-backend-jwqo.onrender.com/api';
-    const API_BASE = 'http://localhost:3000/api';
+        const API_BASE = 'https://nodetest-backend-jwqo.onrender.com/api';
+        // const API_BASE = 'http://localhost:3000/api';
 
-        
+
         const staffListEl = document.getElementById('staffList');
         const usernameEl = document.getElementById('username');
         const passwordEl = document.getElementById('password');
@@ -393,7 +567,7 @@
                     const btn = document.createElement('div');
                     btn.className = 'staff-avatar';
                     btn.textContent = user.username ? user.username.charAt(0) : '?';
-                    btn.title = user.username; 
+                    btn.title = user.username;
                     btn.onclick = () => selectStaff(btn, user.username, user.role);
                     staffListEl.appendChild(btn);
                 });
@@ -406,19 +580,19 @@
         function selectStaff(el, username, role) {
             document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
-            
+
             usernameEl.value = username;
             idGroupEl.classList.add('hide');
             selectedBadgeEl.classList.add('visible');
-            
+
             badgeNameEl.textContent = username;
             badgeRoleEl.textContent = role || 'STAFF';
-            
+
             passwordEl.value = '';
             passwordEl.focus();
         }
 
-        window.resetForm = function() {
+        window.resetForm = function () {
             document.querySelectorAll('.staff-avatar').forEach(n => n.classList.remove('active'));
             idGroupEl.classList.remove('hide');
             selectedBadgeEl.classList.remove('visible');
@@ -432,7 +606,7 @@
             const username = usernameEl.value.trim();
             const password = passwordEl.value.trim();
 
-            if(!username || !password) { showNotify("ERR: MISSING_DATA"); return; }
+            if (!username || !password) { showNotify("ERR: MISSING_DATA"); return; }
 
             loginBtn.textContent = "AUTHENTICATING...";
             loginBtn.disabled = true;
@@ -450,9 +624,9 @@
                     showNotify("ACCESS_GRANTED", true);
                     localStorage.setItem('username', data.user.username);
                     localStorage.setItem('role', data.user.role);
-                    
+
                     setTimeout(() => {
-                        window.location.href = (data.user.role === 'admin' || data.user.role === 'manager') 
+                        window.location.href = (data.user.role === 'admin' || data.user.role === 'manager')
                             ? 'admin.html' : 'pos.html';
                     }, 800);
                 } else {
@@ -475,18 +649,18 @@
             setTimeout(() => n.classList.remove('active'), 3000);
         }
 
-        window.toggleHistory = async function(show) {
+        window.toggleHistory = async function (show) {
             const overlay = document.getElementById('historyOverlay');
             if (show) {
                 overlay.style.display = 'flex';
                 const container = document.getElementById('logContainer');
                 container.innerHTML = '<div style="color:var(--text-muted); font-family:var(--font-mono); font-size:0.85rem;">[ FETCHING_STREAM... ]</div>';
-                
+
                 try {
                     const res = await fetch(`${API_BASE}/invoices`);
                     const invs = await res.json();
-                    
-                    if(!res.ok || invs.length === 0) {
+
+                    if (!res.ok || invs.length === 0) {
                         container.innerHTML = '<div style="color:var(--text-muted); font-family:var(--font-mono); font-size:0.85rem;">[ NO_LOGS_FOUND ]</div>';
                         return;
                     }
@@ -494,7 +668,7 @@
                     container.innerHTML = invs.slice(0, 5).map(i => `
                         <div class="log-row">
                             <div>
-                                <strong style="color:var(--text-main)">INV_${i.invoiceId || i._id.substring(0,6)}</strong>
+                                <strong style="color:var(--text-main)">INV_${i.invoiceId || i._id.substring(0, 6)}</strong>
                                 <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">OP: ${i.createdBy || 'SYS'}</div>
                             </div>
                             <div style="text-align:right">
@@ -503,15 +677,16 @@
                             </div>
                         </div>
                     `).join('');
-                } catch (e) { 
+                } catch (e) {
                     container.innerHTML = '<div style="color:var(--danger); font-family:var(--font-mono); font-size:0.85rem;">[ ERR: STREAM_FAILED ]</div>';
                 }
-            } else { 
-                overlay.style.display = 'none'; 
+            } else {
+                overlay.style.display = 'none';
             }
         }
 
         window.onload = loadStaff;
     </script>
 </body>
+
 </html>
